@@ -9,7 +9,7 @@ namespace Battlesnake.Algorithm
     public class HeuristicConstants
     {
         //MINIMAX VALUES
-        public const int MINIMAX_DEPTH = 8;
+        public const int MINIMAX_DEPTH = 12;
         public const int MAX_HEALTH = 100;
 
         //HEURISTIC

@@ -32,8 +32,6 @@ namespace Battlesnake.API
             services.AddControllers(o => { o.OutputFormatters.Clear(); })
                     .AddNewtonsoftJson(o => { o.UseCamelCasing(processDictionaryKeys: true); });
 
-            NeuralNetwork brain = NeuralNetwork.LoadNetwork();
-            services.AddSingleton(brain);
             Dictionary<string, Direction> map = new();
             services.AddSingleton(map);
         }

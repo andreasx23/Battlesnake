@@ -21,13 +21,11 @@ namespace Battlesnake.API.Controllers
     public class GameController : ControllerBase
     {
         private readonly ILogger<GameController> _logger;
-        private readonly NeuralNetwork _brain;
         private readonly Dictionary<string, Direction> _map;
 
-        public GameController(ILogger<GameController> logger, NeuralNetwork brain, Dictionary<string, Direction> map)
+        public GameController(ILogger<GameController> logger, Dictionary<string, Direction> map)
         {
             _logger = logger;
-            _brain = brain;
             _map = map;
         }
 
@@ -35,7 +33,7 @@ namespace Battlesnake.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Whoami))]
         public IActionResult Get()
         {
-            Whoami whoami = new();
+            Whoami whoami = new("#33cc33", "V0.1");
             return Ok(whoami);
         }
 
@@ -44,7 +42,7 @@ namespace Battlesnake.API.Controllers
         public IActionResult PostStart(GameStatusDTO game)
         {
             string id = game.Game.Id;
-            _map.Add(id, Direction.LEFT);
+            if (!_map.ContainsKey(id)) _map.Add(id, Direction.LEFT);
             _logger.LogInformation($"{LogPrefix(id)} New match has startet. {JsonConvert.SerializeObject(game)}");
             return Ok();
         }
@@ -61,9 +59,7 @@ namespace Battlesnake.API.Controllers
             Direction newDir = algo.CalculateNextMove(game.You, false);
             _map[id] = newDir;
 
-            //if (Util.IsDebug) algo.Print();
-
-            _logger.LogInformation($"{LogPrefix(id)} Previous direction: {currentDir} -- New direction: {newDir}");
+            //_logger.LogInformation($"{LogPrefix(id)} Previous direction: {currentDir} -- New direction: {newDir}");
             MoveDTO move = new() { Move = newDir.ToString().ToLower() };
             return Ok(move);
         }
@@ -73,7 +69,7 @@ namespace Battlesnake.API.Controllers
         public IActionResult PostEnd(GameStatusDTO game)
         {
             string id = game.Game.Id;
-            _map.Remove(id);
+            if (_map.ContainsKey(id)) _map.Remove(id);
             _logger.LogInformation($"{LogPrefix(id)} Match ended");
             return Ok();
         }

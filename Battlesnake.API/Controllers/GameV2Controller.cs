@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -30,7 +31,7 @@ namespace Battlesnake.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Whoami))]
         public IActionResult Get()
         {
-            Whoami whoami = new();
+            Whoami whoami = new(head: "scarf", tail: "present", colour: "#1a1a1a", version: "V1");
             return Ok(whoami);
         }
 
@@ -39,7 +40,7 @@ namespace Battlesnake.API.Controllers
         public IActionResult PostStart(GameStatusDTO game)
         {
             string id = game.Game.Id;
-            _map.Add(id, Direction.LEFT);
+            if (!_map.ContainsKey(id)) _map.Add(id, Direction.LEFT);
             _logger.LogInformation($"{LogPrefix(id)} New match has startet. {JsonConvert.SerializeObject(game)}");
             return Ok();
         }
@@ -48,18 +49,17 @@ namespace Battlesnake.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MoveDTO))]
         public IActionResult PostMove(GameStatusDTO game)
         {
+            Stopwatch watch = Stopwatch.StartNew();
             string id = game.Game.Id;
             if (!_map.ContainsKey(id)) _map.Add(id, Direction.LEFT);
-            Direction currentDir = _map[id];
 
+            Direction currentDir = _map[id];
             Algo algo = new(game, currentDir);
             Direction newDir = algo.CalculateNextMove(game.You, true);
             _map[id] = newDir;
 
-            //if (Util.IsDebug) algo.Print();
-
-            _logger.LogInformation($"{LogPrefix(id)} Previous direction: {currentDir} -- New direction: {newDir}");
-            MoveDTO move = new() { Move = newDir.ToString().ToLower() };
+            _logger.LogInformation($"{LogPrefix(id)} -- Took: {watch.Elapsed} to calculate the move -- Previous direction: {currentDir} -- New direction: {newDir}");
+            MoveDTO move = new() { Move = newDir.ToString().ToLower(), Shout = $"Took: {watch.Elapsed} to calculate the move" };
             return Ok(move);
         }
 
@@ -68,7 +68,7 @@ namespace Battlesnake.API.Controllers
         public IActionResult PostEnd(GameStatusDTO game)
         {
             string id = game.Game.Id;
-            _map.Remove(id);
+            if (_map.ContainsKey(id)) _map.Remove(id);
             _logger.LogInformation($"{LogPrefix(id)} Match ended");
             return Ok();
         }
