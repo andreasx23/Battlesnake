@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Battlesnake.AI\Battlesnake.AI.csproj" />
+    <ProjectReference Include="..\Battlesnake.Enum\Battlesnake.Enum.csproj" />
+  </ItemGroup>
+
+</Project>

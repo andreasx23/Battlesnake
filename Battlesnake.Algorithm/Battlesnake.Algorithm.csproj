@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AlgoKit" Version="0.0.77" />
+    <PackageReference Include="EntityFramework" Version="6.4.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Battlesnake.DTOModel\Battlesnake.DTOModel.csproj" />
+    <ProjectReference Include="..\Battlesnake.Enum\Battlesnake.Enum.csproj" />
+    <ProjectReference Include="..\Battlesnake.Model\Battlesnake.Model.csproj" />
+    <ProjectReference Include="..\Battlesnake.Utility\Battlesnake.Utility.csproj" />
+  </ItemGroup>
+
+</Project>
