@@ -37,11 +37,14 @@ namespace Battlesnake.Algorithm
         {
             new() { X = 0, Y = 0 }, //Upper left
         };
+        private readonly Stopwatch _watch;
+        private bool IsTimeoutThresholdReached => !Util.IsDebug && _watch.Elapsed >= TimeSpan.FromMilliseconds(475);
 
-        public Algo(GameStatusDTO game, Direction dir)
+        public Algo(GameStatusDTO game, Direction dir, Stopwatch watch)
         {
             IS_LOCAL = false;
             _rand = new();
+            _watch = watch;
             UpdateCoordinates(game);
             _game = game;
             _dir = dir;
@@ -59,6 +62,7 @@ namespace Battlesnake.Algorithm
         public Algo(GameStatusDTO game, GameObject[][] grid)
         {
             IS_LOCAL = true;
+            _watch = Stopwatch.StartNew();
             _rand = new();
             _game = game;
             _dir = Direction.LEFT;
@@ -75,8 +79,6 @@ namespace Battlesnake.Algorithm
 
         public Direction CalculateNextMove(Snake me, bool allowMinimax)
         {
-            Stopwatch watch = Stopwatch.StartNew();
-
             try
             {
                 if (allowMinimax && _game.Board.Snakes.Count == 2)
@@ -115,7 +117,7 @@ namespace Battlesnake.Algorithm
             }
             finally
             {
-                if (Util.IsDebug) Console.WriteLine($"Run time took: {watch.Elapsed} -- next direction: {_dir}");
+                if (Util.IsDebug) WriteDebugMessage($"Run time took: {_watch.Elapsed} -- next direction: {_dir}");
             }
 
             return _dir;
@@ -180,13 +182,8 @@ namespace Battlesnake.Algorithm
             GameObject[][] grid = CloneGrid(_grid);
             Snake meClone = me.Clone();
             Snake otherClone = other.Clone();
-            //WriteDebugMessage("Board before minimax");
-            //Print(grid);
             (double score, Direction move) = Minimax(grid, HeuristicConstants.MINIMAX_DEPTH);
             WriteDebugMessage("FINAL SCORE: " + score.ToString());
-            //WriteDebugMessage(score.ToString() + " " + move);
-            //WriteDebugMessage("Board after minimax");
-            //Print(grid);
             if (move != Direction.NO_MOVE)
                 return move;
             //Clear board to find new move
@@ -198,8 +195,11 @@ namespace Battlesnake.Algorithm
             return Direction.NO_MOVE;
         }
 
+        //TODO IMPLEMENT LOGIC TO HANDLE THAT WE LOSE 1 HEALTH A MOVE AND 1 FOOD REGEN TO 100 HEALTH
         private (double score, Direction move) Minimax(GameObject[][] grid, int depth, bool isMaximizingPlayer = true, int myFoodCount = 0, int otherFoodCount = 0, double alpha = double.MinValue, double beta = double.MaxValue)
         {
+            if (IsTimeoutThresholdReached) return (0, Direction.NO_MOVE); //Failsafe to handle timeout
+
             Snake me = _game.You, other = _game.Board.Snakes.First(s => s.Id != _game.You.Id);
             if (depth == 0)
             {
@@ -220,7 +220,6 @@ namespace Battlesnake.Algorithm
                 (0, 1), //Right
                 (-1, 0) //Up
             };
-            //moves.Shuffle(); //Random shuffles the order of moves
             Direction bestMove = Direction.NO_MOVE;
             Snake currentSnake = isMaximizingPlayer ? me : other;
             double bestMoveScore = isMaximizingPlayer ? double.MinValue : double.MaxValue;
@@ -230,10 +229,7 @@ namespace Battlesnake.Algorithm
                 (int x, int y) = moves[i];
                 int dx = x + currentSnake.Head.X, dy = y + currentSnake.Head.Y;
                 if (IsMoveableTile(grid, dx, dy) || IsInBounds(dx, dy) && IsHeadCollision(me, other))
-                //if (IsInBounds(dx, dy))
-                //if (!isMaximizingPlayer && IsInBounds(dx, dy) || isMaximizingPlayer && IsMoveableTile(grid, dx, dy) || isMaximizingPlayer && IsInBounds(dx, dy) && IsHeadCollision(me, other))
                 {
-                    //var clone = CloneGrid(grid);
                     GameObject lastTile = grid[dx][dy];
                     Direction move = GetMove(x, y);
                     Point tail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
@@ -241,15 +237,6 @@ namespace Battlesnake.Algorithm
                     ShiftBodyForward(grid, currentSnake, x, y);
                     (double score, Direction move) eval = Minimax(grid, depth - 1, !isMaximizingPlayer, isMaximizingPlayer ? currentAppleCount : myFoodCount, !isMaximizingPlayer ? currentAppleCount : otherFoodCount, alpha, beta);
                     ShiftBodyBackwards(grid, lastTile, currentSnake, tail);
-                    //WriteDebugMessage($"Best score: {bestMoveScore} current score: {eval.score}");
-                    //if (!IsSame(grid, clone))
-                    //{
-                    //    Print(clone);
-                    //    WriteDebugMessage("");
-                    //    Print(grid);
-                    //    Debug.Assert(false);
-                    //}
-
                     if (isMaximizingPlayer)
                     {
                         if (eval.score > bestMoveScore)
@@ -351,30 +338,30 @@ namespace Battlesnake.Algorithm
                 {
                     if (corner.corner.X == 0 && corner.corner.Y == 0) //Upper left
                     {
-                        if (otherNeck.X == 1) //Is moving upwards
+                        if (otherNeck.X == 1) //Next move is right
                             otherSnakeMove = new() { X = 0, Y = 1 };
-                        else //Is moving left
+                        else //Next move is down
                             otherSnakeMove = new() { X = 1, Y = 0 };
                     }
                     else if (corner.corner.X == h - 1 && corner.corner.Y == 0) //Lower left
                     {
-                        if (otherNeck.X == 1) //Is moving upwards
-                            otherSnakeMove = new() { X = 0, Y = w - 2 };
-                        else //Is moving right
-                            otherSnakeMove = new() { X = 1, Y = w - 1 };
+                        if (otherNeck.X == h - 2) //Next move is right
+                            otherSnakeMove = new() { X = h - 1, Y = 1 };
+                        else //Next move is up
+                            otherSnakeMove = new() { X = h - 2, Y = 0 };
                     }
                     else if (corner.corner.X == 0 && corner.corner.Y == w - 1) //Upper right
                     {
-                        if (otherNeck.X == 1) //Is moving downwards
-                            otherSnakeMove = new() { X = h - 1, Y = 1 };
-                        else //Is moving left
-                            otherSnakeMove = new() { X = h - 2, Y = 0 };
+                        if (otherNeck.X == 1) //Next move is left
+                            otherSnakeMove = new() { X = 0, Y = w - 2 };
+                        else //Next move is down
+                            otherSnakeMove = new() { X = 1, Y = w - 1 };
                     }
                     else if (corner.corner.X == h - 1 && corner.corner.Y == w - 1) //Lower right
                     {
-                        if (otherNeck.X == 1) //Is moving downwards
+                        if (otherNeck.X == h - 2) //Next move is left
                             otherSnakeMove = new() { X = h - 1, Y = w - 2 };
-                        else //Is moving right
+                        else //Next move is up
                             otherSnakeMove = new() { X = h - 2, Y = w - 1 };
                     }
                     else
@@ -440,7 +427,10 @@ namespace Battlesnake.Algorithm
             if (me.Health <= 40 || myLength < otherLength + 2) //I am hungry or they are 2 sizes larger than me
             {
                 if (myFoodCount > 0)
+                {
                     foodScore = HeuristicConstants.MY_FOOD_VALUE * myFoodCount;
+                    //me.Health = HeuristicConstants.MAX_HEALTH; //TODO
+                }
                 else
                 {
                     Point myClosestFood = FindClosestFood(me);
@@ -454,7 +444,10 @@ namespace Battlesnake.Algorithm
             if (other.Health <= 40 || otherLength < myLength + 2) //They are hungry or I am two sizes larger
             {
                 if (otherFoodCount > 0)
+                {
                     theirFoodScore -= HeuristicConstants.OTHER_FOOD_VALUE * otherFoodCount;
+                    //other.Health = HeuristicConstants.MAX_HEALTH; //TODO
+                }
                 else
                 {
                     Point otherClosestFood = FindClosestFood(other);
@@ -485,11 +478,6 @@ namespace Battlesnake.Algorithm
             else if (otherHead.X == 1 || otherHead.X == h - 2 || otherHead.Y == 1 || otherHead.Y == w - 2)
                 edgeScore += secondOuterBound / 2;
             score += edgeScore;
-
-            if (score >= 57289761)
-            {
-                Console.WriteLine();
-            }
 
             return score;
         }

@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Battlesnake.API.Controllers
@@ -51,11 +52,12 @@ namespace Battlesnake.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MoveDTO))]
         public IActionResult PostMove(GameStatusDTO game)
         {
+            Stopwatch watch = Stopwatch.StartNew();
             string id = game.Game.Id;
             if (!_map.ContainsKey(id)) _map.Add(id, Direction.LEFT);
             Direction currentDir = _map[id];
 
-            Algo algo = new(game, currentDir);
+            Algo algo = new(game, currentDir, watch);
             Direction newDir = algo.CalculateNextMove(game.You, false);
             _map[id] = newDir;
 

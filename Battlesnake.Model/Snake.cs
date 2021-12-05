@@ -42,8 +42,8 @@ namespace Battlesnake.Model
         public Snake Clone()
         {
             List<Point> body = new();
-            foreach (var item in Body)
-                body.Add(new Point() { X = item.X, Y = item.Y });
+            foreach (var b in Body)
+                body.Add(new Point() { X = b.X, Y = b.Y });
             return new Snake()
             {
                 Id = Id,
@@ -55,12 +55,12 @@ namespace Battlesnake.Model
                 Length = Length,
                 Shout = Shout,
                 Squad = Squad,
-                IsAlive = IsAlive,
-                Direction = Direction,
-                Score = Score,
-                Moves = Moves,
-                SnakesEaten = SnakesEaten,
-                Brain = Brain
+                //IsAlive = IsAlive,
+                //Direction = Direction,
+                //Score = Score,
+                //Moves = Moves,
+                //SnakesEaten = SnakesEaten,
+                //Brain = Brain
             };
         }
     }
