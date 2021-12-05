@@ -43,7 +43,7 @@ namespace Battlesnake.API.Controllers
         {
             string id = game.Game.Id;
             if (!_map.ContainsKey(id)) _map.Add(id, Direction.LEFT);
-            _logger.LogInformation($"{LogPrefix(id)} New match has startet. {JsonConvert.SerializeObject(game)}");
+            _logger.LogInformation($"{Util.LogPrefix(id)} New match has startet. {JsonConvert.SerializeObject(game)}");
             return Ok();
         }
 
@@ -59,7 +59,7 @@ namespace Battlesnake.API.Controllers
             Direction newDir = algo.CalculateNextMove(game.You, false);
             _map[id] = newDir;
 
-            //_logger.LogInformation($"{LogPrefix(id)} Previous direction: {currentDir} -- New direction: {newDir}");
+            //_logger.LogInformation($"{Util.LogPrefix(id)} Previous direction: {currentDir} -- New direction: {newDir}");
             MoveDTO move = new() { Move = newDir.ToString().ToLower() };
             return Ok(move);
         }
@@ -70,13 +70,8 @@ namespace Battlesnake.API.Controllers
         {
             string id = game.Game.Id;
             if (_map.ContainsKey(id)) _map.Remove(id);
-            _logger.LogInformation($"{LogPrefix(id)} Match ended");
+            _logger.LogInformation($"{Util.LogPrefix(id)} Match ended");
             return Ok();
-        }
-
-        private static string LogPrefix(string id)
-        {
-            return $"[{id}]";
         }
     }
 }

@@ -2,6 +2,7 @@
 using Battlesnake.DTOModel;
 using Battlesnake.Enum;
 using Battlesnake.Model;
+using Battlesnake.Utility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -41,7 +42,7 @@ namespace Battlesnake.API.Controllers
         {
             string id = game.Game.Id;
             if (!_map.ContainsKey(id)) _map.Add(id, Direction.LEFT);
-            _logger.LogInformation($"{LogPrefix(id)} New match has startet. {JsonConvert.SerializeObject(game)}");
+            _logger.LogInformation($"{Util.LogPrefix(id)} New match has startet. {JsonConvert.SerializeObject(game)}");
             return Ok();
         }
 
@@ -58,7 +59,7 @@ namespace Battlesnake.API.Controllers
             Direction newDir = algo.CalculateNextMove(game.You, true);
             _map[id] = newDir;
 
-            _logger.LogInformation($"{LogPrefix(id)} -- Took: {watch.Elapsed} to calculate the move -- Previous direction: {currentDir} -- New direction: {newDir}");
+            _logger.LogInformation($"{Util.LogPrefix(id)} -- Took: {watch.Elapsed} to calculate the move -- Previous direction: {currentDir} -- New direction: {newDir}");
             MoveDTO move = new() { Move = newDir.ToString().ToLower(), Shout = $"Took: {watch.Elapsed} to calculate the move" };
             return Ok(move);
         }
@@ -69,13 +70,8 @@ namespace Battlesnake.API.Controllers
         {
             string id = game.Game.Id;
             if (_map.ContainsKey(id)) _map.Remove(id);
-            _logger.LogInformation($"{LogPrefix(id)} Match ended");
+            _logger.LogInformation($"{Util.LogPrefix(id)} Match ended");
             return Ok();
-        }
-
-        private static string LogPrefix(string id)
-        {
-            return $"[{id}]";
         }
     }
 }
