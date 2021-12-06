@@ -269,7 +269,7 @@ namespace Battlesnake.Algorithm
                         }
                         beta = Math.Min(beta, eval.score);
                     }
-                    //if (beta <= alpha) break;
+                    if (beta <= alpha) break;
                 }
             }
             return (bestMoveScore, bestMove);
