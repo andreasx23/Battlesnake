@@ -18,6 +18,7 @@ namespace Battlesnake.Algorithm
 
         //AGGRESSION
         public const double AGGRESSION_VALUE = 7.5d;
+        public const double CORNOR_AGGRESSION_VALUE = 2.5d;
 
         //FOOD
         public const double MY_FOOD_VALUE = 50d;

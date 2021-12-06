@@ -269,7 +269,7 @@ namespace Battlesnake.Algorithm
                         }
                         beta = Math.Min(beta, eval.score);
                     }
-                    if (beta <= alpha) break;
+                    //if (beta <= alpha) break;
                 }
             }
             return (bestMoveScore, bestMove);
@@ -357,6 +357,7 @@ namespace Battlesnake.Algorithm
                 Point otherNeck = other.Body[1];
                 Point otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y };
                 (double distance, Point corner) closestCornor = FindClosestCorner(otherHead);
+                bool isCornorChasing = false;
                 if (closestCornor.distance == 0) //Other snake is in a corner
                 {
                     if (closestCornor.corner.X == 0 && closestCornor.corner.Y == 0) //Upper left
@@ -387,8 +388,6 @@ namespace Battlesnake.Algorithm
                         else //Next move is up
                             otherSnakeMove = new() { X = h - 2, Y = w - 1 };
                     }
-                    else
-                        throw new Exception("Invalid corner");
                 }
                 else if (otherHead.X == 0 || other.Head.X == h - 1 || other.Head.Y == 0 || other.Head.Y == w - 1) //Other snake is moving on a edge line
                 {
@@ -424,6 +423,61 @@ namespace Battlesnake.Algorithm
                             }
                         }
                     }
+                    else if (myLength > otherLength) //We're longer check is we're chasing him
+                    {
+                        if (other.Head.Y == w - 1) //Right line
+                        {
+                            if (other.Head.X + 1 == myHead.X && myHead.Y == w - 2) //Is going up
+                            {
+                                otherSnakeMove = new() { X = otherHead.X - 1, Y = otherHead.Y };
+                                isCornorChasing = true;
+                            }
+                            else if (other.Head.X - 1 == myHead.X && myHead.Y == w - 2) //Is moving down
+                            {
+                                otherSnakeMove = new() { X = otherHead.X + 1, Y = otherHead.Y };
+                                isCornorChasing = true;
+                            }
+                        }
+                        else if (other.Head.Y == 0) //Left line
+                        {
+                            if (other.Head.X + 1 == myHead.X && myHead.Y == 1) //Is going up
+                            {
+                                otherSnakeMove = new() { X = otherHead.X - 1, Y = otherHead.Y };
+                                isCornorChasing = true;
+                            }
+                            else if (other.Head.X - 1 == myHead.X && myHead.Y == 1) //Is moving down
+                            {
+                                otherSnakeMove = new() { X = otherHead.X + 1, Y = otherHead.Y };
+                                isCornorChasing = true;
+                            }
+                        }
+                        else if (other.Head.X == 0) //Upper line
+                        {
+                            if (other.Head.Y + 1 == myHead.Y && myHead.X == 1) //Is going left
+                            {
+                                otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y - 1 };
+                                isCornorChasing = true;
+                            }
+                            else if (other.Head.Y - 1 == myHead.Y && myHead.X == 1) //Is going right
+                            {
+                                otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y + 1 };
+                                isCornorChasing = true;
+                            }
+                        }
+                        else if (other.Head.X == h - 1) //Bottom line
+                        {
+                            if (other.Head.Y + 1 == myHead.Y && myHead.X == h - 2) //Is going left
+                            {
+                                otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y - 1 };
+                                isCornorChasing = true;
+                            }
+                            else if (other.Head.Y - 1 == myHead.Y && myHead.X == h - 2) //Is going right
+                            {
+                                otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y + 1 };
+                                isCornorChasing = true;
+                            }
+                        }
+                    }
                 }
                 else //Try to predict snake move
                 {
@@ -444,8 +498,8 @@ namespace Battlesnake.Algorithm
                     otherSnakeMove = safeTiles[index];
                 }
 
-                int distanceToOtherSnake = ManhattenDistance(myHead.X, myHead.Y, otherSnakeMove.X, otherSnakeMove.Y);
-                aggresionScore = Math.Abs(maxDistance - distanceToOtherSnake) * HeuristicConstants.AGGRESSION_VALUE;
+                int distanceToOtherSnake = Math.Abs(maxDistance - ManhattenDistance(myHead.X, myHead.Y, otherSnakeMove.X, otherSnakeMove.Y));
+                aggresionScore = isCornorChasing ? distanceToOtherSnake * HeuristicConstants.AGGRESSION_VALUE * HeuristicConstants.CORNOR_AGGRESSION_VALUE : distanceToOtherSnake * HeuristicConstants.AGGRESSION_VALUE;
             }
             score += aggresionScore;
 
