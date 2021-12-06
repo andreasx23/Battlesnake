@@ -8,15 +8,15 @@ namespace Battlesnake.Model
 {
     public class RulesetSettings
     {
-        public int FoodSpawnChance { get; set; }
-        public int MinimumFood { get; set; }
-        public int HazardDamagePerTurn { get; set; }
+        public int FoodSpawnChance { get; set; } = 100;
+        public int MinimumFood { get; set; } = 1;
+        public int HazardDamagePerTurn { get; set; } = 1;
         //Royale mode
-        public int ShrinkEveryNTurns { get; set; }
+        public int ShrinkEveryNTurns { get; set; } = int.MaxValue;
         //Squad mode
-        public bool AllowBodyCollisions { get; set; }
-        public bool SharedElimination { get; set; }
-        public bool SharedHealth { get; set; }
-        public bool SharedLength { get; set; }
+        public bool AllowBodyCollisions { get; set; } = false;
+        public bool SharedElimination { get; set; } = false;
+        public bool SharedHealth { get; set; } = false;
+        public bool SharedLength { get; set; } = false;
     }
 }

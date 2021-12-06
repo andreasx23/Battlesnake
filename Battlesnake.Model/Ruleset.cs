@@ -8,8 +8,8 @@ namespace Battlesnake.Model
 {
     public class Ruleset
     {
-        public string Name { get; set; }
-        public string Version { get; set; }
-        public RulesetSettings Settings { get; set; }
+        public string Name { get; set; } = "Default";
+        public string Version { get; set; } = "Default";
+        public RulesetSettings Settings { get; set; } = new();
     }
 }

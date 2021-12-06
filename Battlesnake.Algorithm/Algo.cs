@@ -38,7 +38,7 @@ namespace Battlesnake.Algorithm
             new() { X = 0, Y = 0 }, //Upper left
         };
         private readonly Stopwatch _watch;
-        private bool IsTimeoutThresholdReached => !Util.IsDebug && _watch.Elapsed >= TimeSpan.FromMilliseconds(475);
+        private bool IsTimeoutThresholdReached => !Util.IsDebug && _watch.Elapsed >= TimeSpan.FromMilliseconds(_game.Game.Timeout - 25);
 
         public Algo(GameStatusDTO game, Direction dir, Stopwatch watch)
         {
@@ -195,10 +195,9 @@ namespace Battlesnake.Algorithm
             return Direction.NO_MOVE;
         }
 
-        //TODO IMPLEMENT LOGIC TO HANDLE THAT WE LOSE 1 HEALTH A MOVE AND 1 FOOD REGEN TO 100 HEALTH
         private (double score, Direction move) Minimax(GameObject[][] grid, int depth, bool isMaximizingPlayer = true, int myFoodCount = 0, int otherFoodCount = 0, double alpha = double.MinValue, double beta = double.MaxValue)
         {
-            if (IsTimeoutThresholdReached) return (0, Direction.NO_MOVE); //Failsafe to handle timeout
+            if (IsTimeoutThresholdReached) return (isMaximizingPlayer ? double.MinValue : double.MaxValue, Direction.NO_MOVE); //Failsafe to handle timeout
 
             Snake me = _game.You, other = _game.Board.Snakes.First(s => s.Id != _game.You.Id);
             if (depth == 0)
@@ -228,15 +227,24 @@ namespace Battlesnake.Algorithm
             {
                 (int x, int y) = moves[i];
                 int dx = x + currentSnake.Head.X, dy = y + currentSnake.Head.Y;
-                if (IsMoveableTile(grid, dx, dy) || IsInBounds(dx, dy) && IsHeadCollision(me, other))
+                if (IsInBounds(dx, dy))
                 {
-                    GameObject lastTile = grid[dx][dy];
-                    Direction move = GetMove(x, y);
+                    //Change state of the game
                     Point tail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
+                    Direction move = GetMove(x, y);
+                    GameObject lastTile = grid[dx][dy];
+                    int currentHp = currentSnake.Health;
+                    int currentLength = currentSnake.Length;
                     int currentAppleCount = IsFoodTile(grid, dx, dy) ? prevAppleCount + 1 : prevAppleCount;
+                    currentSnake.Health = IsFoodTile(grid, dx, dy) ? HeuristicConstants.MAX_HEALTH : currentHp - _game.Game.Ruleset.Settings.HazardDamagePerTurn;
+                    currentSnake.Length = IsFoodTile(grid, dx, dy) ? currentLength + 1 : currentLength; //TODO ADD BODY PART!
                     ShiftBodyForward(grid, currentSnake, x, y);
                     (double score, Direction move) eval = Minimax(grid, depth - 1, !isMaximizingPlayer, isMaximizingPlayer ? currentAppleCount : myFoodCount, !isMaximizingPlayer ? currentAppleCount : otherFoodCount, alpha, beta);
+                    //Revert changes made
                     ShiftBodyBackwards(grid, lastTile, currentSnake, tail);
+                    currentSnake.Health = currentHp;
+                    currentSnake.Length = currentLength;
+
                     if (isMaximizingPlayer)
                     {
                         if (eval.score > bestMoveScore)
@@ -333,31 +341,31 @@ namespace Battlesnake.Algorithm
             {
                 Point otherNeck = other.Body[1];
                 Point otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y };
-                (double distance, Point corner) corner = FindClosestCorner(otherHead);
-                if (corner.distance == 0) //Other snake is in a corner
+                (double distance, Point corner) closestCornor = FindClosestCorner(otherHead);
+                if (closestCornor.distance == 0) //Other snake is in a corner
                 {
-                    if (corner.corner.X == 0 && corner.corner.Y == 0) //Upper left
+                    if (closestCornor.corner.X == 0 && closestCornor.corner.Y == 0) //Upper left
                     {
                         if (otherNeck.X == 1) //Next move is right
                             otherSnakeMove = new() { X = 0, Y = 1 };
                         else //Next move is down
                             otherSnakeMove = new() { X = 1, Y = 0 };
                     }
-                    else if (corner.corner.X == h - 1 && corner.corner.Y == 0) //Lower left
+                    else if (closestCornor.corner.X == h - 1 && closestCornor.corner.Y == 0) //Lower left
                     {
                         if (otherNeck.X == h - 2) //Next move is right
                             otherSnakeMove = new() { X = h - 1, Y = 1 };
                         else //Next move is up
                             otherSnakeMove = new() { X = h - 2, Y = 0 };
                     }
-                    else if (corner.corner.X == 0 && corner.corner.Y == w - 1) //Upper right
+                    else if (closestCornor.corner.X == 0 && closestCornor.corner.Y == w - 1) //Upper right
                     {
                         if (otherNeck.X == 1) //Next move is left
                             otherSnakeMove = new() { X = 0, Y = w - 2 };
                         else //Next move is down
                             otherSnakeMove = new() { X = 1, Y = w - 1 };
                     }
-                    else if (corner.corner.X == h - 1 && corner.corner.Y == w - 1) //Lower right
+                    else if (closestCornor.corner.X == h - 1 && closestCornor.corner.Y == w - 1) //Lower right
                     {
                         if (otherNeck.X == h - 2) //Next move is left
                             otherSnakeMove = new() { X = h - 1, Y = w - 2 };
@@ -427,10 +435,7 @@ namespace Battlesnake.Algorithm
             if (me.Health <= 40 || myLength < otherLength + 2) //I am hungry or they are 2 sizes larger than me
             {
                 if (myFoodCount > 0)
-                {
                     foodScore = HeuristicConstants.MY_FOOD_VALUE * myFoodCount;
-                    //me.Health = HeuristicConstants.MAX_HEALTH; //TODO
-                }
                 else
                 {
                     Point myClosestFood = FindClosestFood(me);
@@ -444,10 +449,7 @@ namespace Battlesnake.Algorithm
             if (other.Health <= 40 || otherLength < myLength + 2) //They are hungry or I am two sizes larger
             {
                 if (otherFoodCount > 0)
-                {
                     theirFoodScore -= HeuristicConstants.OTHER_FOOD_VALUE * otherFoodCount;
-                    //other.Health = HeuristicConstants.MAX_HEALTH; //TODO
-                }
                 else
                 {
                     Point otherClosestFood = FindClosestFood(other);
@@ -520,9 +522,11 @@ namespace Battlesnake.Algorithm
 
         private double CalculateFloodfillScore(GameObject[][] grid, Snake me)
         {
-            int cavernSize = FloodFillWithLimit(grid, me, me.Length);
+            Point head = new() { X = me.Head.X, Y = me.Head.Y };
+            int cavernSize = FloodFillWithLimit(grid, head, me.Length);
+            //int cavernSize = FloodFillMaxScoreWithLimit(grid, me, me.Length);
             if (cavernSize >= HeuristicConstants.SAFE_CAVERN_SIZE * me.Length) return 0;
-            double floodFillScore = (HeuristicConstants.FLOODFILL_MAX - HeuristicConstants.FLOODFILL_MIN) / Math.Sqrt(HeuristicConstants.SAFE_CAVERN_SIZE * HeuristicConstants.LARGEST_SNAKE) * Math.Sqrt(cavernSize) - HeuristicConstants.FLOODFILL_MAX;
+            double floodFillScore = (HeuristicConstants.FLOODFILL_MAX - HeuristicConstants.FLOODFILL_MIN) / Math.Sqrt(HeuristicConstants.SAFE_CAVERN_SIZE * HeuristicConstants.MAX_SNAKE_LENGTH) * Math.Sqrt(cavernSize) - HeuristicConstants.FLOODFILL_MAX;
             return floodFillScore;
         }
 
@@ -553,6 +557,12 @@ namespace Battlesnake.Algorithm
             if (!IsInBounds(otherHead.X, otherHead.Y))
                 otherSnakeDead = true;
 
+            if (me.Health <= 0)
+                mySnakeDead = true;
+
+            if (other.Health <= 0)
+                otherSnakeDead = true;
+
             if (IsHeadCollision(me, other))
             {
                 headOnCollsion = true;
@@ -568,15 +578,20 @@ namespace Battlesnake.Algorithm
             }
 
             int mySnakeHeadOnCount = 0, otherSnakeHeadOnCount = 0;
-            foreach (var s in _game.Board.Snakes)
+            foreach (var b in me.Body)
             {
-                foreach (var b in s.Body)
-                {
-                    if (b.X == myHead.X && b.Y == myHead.Y)
-                        mySnakeHeadOnCount++;
-                    if (b.X == otherHead.X && b.Y == otherHead.Y)
-                        otherSnakeHeadOnCount++;
-                }
+                if (b.X == myHead.X && b.Y == myHead.Y)
+                    mySnakeHeadOnCount++;
+                if (b.X == otherHead.X && b.Y == otherHead.Y)
+                    otherSnakeHeadOnCount++;
+            }
+
+            foreach (var b in other.Body)
+            {
+                if (b.X == myHead.X && b.Y == myHead.Y)
+                    mySnakeHeadOnCount++;
+                if (b.X == otherHead.X && b.Y == otherHead.Y)
+                    otherSnakeHeadOnCount++;
             }
 
             if (!headOnCollsion) //Maybe body collsion
@@ -633,11 +648,12 @@ namespace Battlesnake.Algorithm
                 int dy = me.Head.Y + y;
                 if (IsMoveableTile(dx, dy))
                 {
-                    var clone = CloneGrid(_grid);
-                    var freeTiles = FloodFill(clone, dx, dy);
+                    GameObject[][] clone = CloneGrid(_grid);
+                    Point head = new() { X = dx, Y = dy };
+                    int score = FloodFillWithLimit(clone, head, me.Length);
                     dx -= me.Head.X;
                     dy -= me.Head.Y;
-                    list.Add((dx, dy, freeTiles));
+                    list.Add((dx, dy, score));
                 }
             }
 
@@ -650,42 +666,49 @@ namespace Battlesnake.Algorithm
             return _dir;
         }
 
-        private int FloodFillWithLimit(GameObject[][] grid, Snake me, int limit)
+        private int FloodFillMaxScoreWithLimit(GameObject[][] grid, Snake me, int limit)
+        {
+            //return 0;
+            List<int> scores = new();
+            foreach (var (x, y) in _dirs.Keys)
+            {
+                int dx = me.Head.X + x;
+                int dy = me.Head.Y + y;
+                if (IsMoveableTile(dx, dy))
+                {
+                    int score = FloodFillWithLimit(grid, new() { X = dx, Y = dy }, limit);
+                    scores.Add(score);
+                }
+            }
+            return scores.Max();
+        }
+
+        private int FloodFillWithLimit(GameObject[][] grid, Point head, int limit)
         {
             Queue<(int x, int y)> queue = new();
-            HashSet<(int x, int y)> isVisited = new();
-            queue.Enqueue((me.Head.X, me.Head.Y));
-            isVisited.Add((me.Head.X, me.Head.Y));
-            int count = 1; //One because we added our head
+            queue.Enqueue((head.X, head.Y));
+            bool[,] isVisited = new bool[grid.Length, grid.First().Length];
+            isVisited[head.X, head.Y] = true;
+            int count = 1;
             while (queue.Any())
             {
-                (int x, int y) current = queue.Dequeue();
-                if (count >= limit) return count;
-                foreach (var (x, y) in _dirs.Keys)
+                (int x, int y) = queue.Dequeue();
+
+                if (count >= limit)
+                    break;
+
+                foreach ((int x, int y) dir in _dirs.Keys)
                 {
-                    int dx = x + current.x, dy = y + current.y;
-                    if (IsMoveableTile(grid, dx, dy) && isVisited.Add((dx, dy)))
+                    int dx = dir.x + x, dy = dir.y + y;
+                    if (IsMoveableTile(grid, dx, dy) && !isVisited[dx, dy])
                     {
+                        isVisited[dx, dy] = true;
                         queue.Enqueue((dx, dy));
                         count++;
                     }
                 }
             }
             return count;
-        }
-
-        private int FloodFill(GameObject[][] grid, int x, int y)
-        {
-            if (!IsMoveableTile(grid, x, y)) return 0;
-            int sum = 0;
-            grid[x][y] = GameObject.BODY; //Set visited
-            foreach ((int x, int y) item in _dirs.Keys)
-            {
-                int dx = x + item.x;
-                int dy = y + item.y;
-                sum += 1 + FloodFill(grid, dx, dy);
-            }
-            return sum;
         }
         #endregion
 
@@ -709,7 +732,7 @@ namespace Battlesnake.Algorithm
 
             while (!queue.IsEmpty)
             {
-                var current = queue.Pop().Value;
+                (int x, int y, List<(int x, int y)> steps) current = queue.Pop().Value;
 
                 if (current.x == target.X && current.y == target.Y)
                 {

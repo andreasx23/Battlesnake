@@ -11,6 +11,7 @@ namespace Battlesnake.Enum
         FOOD = '@',
         HEAD = 'X',
         BODY = '+',
-        FLOOR = ' '
+        FLOOR = ' ',
+        IS_VISITED = 'O',
     }
 }
