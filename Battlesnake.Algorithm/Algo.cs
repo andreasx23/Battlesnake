@@ -179,27 +179,18 @@ namespace Battlesnake.Algorithm
         #region Mini max with alpha beta pruning
         private Direction Minimax(Snake me, Snake other)
         {
-            GameObject[][] grid = CloneGrid(_grid);
+            GameObject[][] gridClone = CloneGrid(_grid);
             Snake meClone = me.Clone();
             Snake otherClone = other.Clone();
-            (double score, Direction move) = Minimax(grid, HeuristicConstants.MINIMAX_DEPTH);
-            WriteDebugMessage("FINAL SCORE: " + score.ToString());
-            if (move != Direction.NO_MOVE)
-                return move;
-            //Clear board to find new move
-            int myIndex = _game.Board.Snakes.IndexOf(_game.Board.Snakes.First(s => s.Id == me.Id));
-            int otherIndex = _game.Board.Snakes.IndexOf(_game.Board.Snakes.First(s => s.Id == other.Id));
-            _game.Board.Snakes[myIndex] = meClone;
-            _game.You = meClone;
-            _game.Board.Snakes[otherIndex] = otherClone;
-            return Direction.NO_MOVE;
+            (double score, Direction move) = Minimax(gridClone, meClone, otherClone, HeuristicConstants.MINIMAX_DEPTH);
+            WriteDebugMessage($"Best score from minimax: {score} -- move to perform: {move}");
+            return move;
         }
 
-        private (double score, Direction move) Minimax(GameObject[][] grid, int depth, bool isMaximizingPlayer = true, int myFoodCount = 0, int otherFoodCount = 0, double alpha = double.MinValue, double beta = double.MaxValue)
+        private (double score, Direction move) Minimax(GameObject[][] grid, Snake me, Snake other, int depth, bool isMaximizingPlayer = true, int myFoodCount = 0, int otherFoodCount = 0, double alpha = double.MinValue, double beta = double.MaxValue)
         {
             if (IsTimeoutThresholdReached) return (isMaximizingPlayer ? double.MinValue : double.MaxValue, Direction.NO_MOVE); //Failsafe to handle timeout
 
-            Snake me = _game.You, other = _game.Board.Snakes.First(s => s.Id != _game.You.Id);
             if (depth == 0)
             {
                 double evaluatedState = EvaluateState(grid, me, other, depth, myFoodCount, otherFoodCount);
@@ -220,6 +211,7 @@ namespace Battlesnake.Algorithm
                 (-1, 0) //Up
             };
             Direction bestMove = Direction.NO_MOVE;
+            List<Snake> snakes = new() { me, other };
             Snake currentSnake = isMaximizingPlayer ? me : other;
             double bestMoveScore = isMaximizingPlayer ? double.MinValue : double.MaxValue;
             int prevAppleCount = isMaximizingPlayer ? myFoodCount : otherFoodCount;
@@ -235,16 +227,30 @@ namespace Battlesnake.Algorithm
                     GameObject lastTile = grid[dx][dy];
                     int currentHp = currentSnake.Health;
                     int currentLength = currentSnake.Length;
-                    int currentAppleCount = IsFoodTile(grid, dx, dy) ? prevAppleCount + 1 : prevAppleCount;
-                    currentSnake.Health = IsFoodTile(grid, dx, dy) ? HeuristicConstants.MAX_HEALTH : currentHp - _game.Game.Ruleset.Settings.HazardDamagePerTurn;
-                    currentSnake.Length = IsFoodTile(grid, dx, dy) ? currentLength + 1 : currentLength; //TODO ADD BODY PART!
-                    ShiftBodyForward(grid, currentSnake, x, y);
-                    (double score, Direction move) eval = Minimax(grid, depth - 1, !isMaximizingPlayer, isMaximizingPlayer ? currentAppleCount : myFoodCount, !isMaximizingPlayer ? currentAppleCount : otherFoodCount, alpha, beta);
-                    //Revert changes made
-                    ShiftBodyBackwards(grid, lastTile, currentSnake, tail);
+                    bool isFoodTile = IsFoodTile(grid, dx, dy);
+                    int currentAppleCount = isFoodTile ? prevAppleCount + 1 : prevAppleCount;
+                    currentSnake.Health = isFoodTile ? HeuristicConstants.MAX_HEALTH : currentHp - _game.Game.Ruleset.Settings.HazardDamagePerTurn;
+                    currentSnake.Length = isFoodTile ? currentLength + 1 : currentLength;
+                    //Move the snake
+                    ClearSnakesFromGrid(grid, snakes);
+                    ShiftBodyForward(grid, currentSnake, x, y, isFoodTile);
+                    ApplySnakesToGrid(grid, snakes);
+                    (double score, Direction move) eval = Minimax(grid: grid,
+                                                                    me: isMaximizingPlayer ? currentSnake : me,
+                                                                    other: !isMaximizingPlayer ? currentSnake : other,
+                                                                    depth: depth - 1,
+                                                                    isMaximizingPlayer: !isMaximizingPlayer,
+                                                                    myFoodCount: isMaximizingPlayer ? currentAppleCount : myFoodCount,
+                                                                    otherFoodCount: !isMaximizingPlayer ? currentAppleCount : otherFoodCount,
+                                                                    alpha: alpha,
+                                                                    beta: beta);
+                    //Move the snake back
+                    ClearSnakesFromGrid(grid, snakes);
+                    ShiftBodyBackwards(grid, lastTile, currentSnake, tail, isFoodTile);
+                    ApplySnakesToGrid(grid, snakes);
+                    //Revert changes made doing previous state
                     currentSnake.Health = currentHp;
                     currentSnake.Length = currentLength;
-
                     if (isMaximizingPlayer)
                     {
                         if (eval.score > bestMoveScore)
@@ -283,19 +289,18 @@ namespace Battlesnake.Algorithm
                 throw new Exception($"Invalid values: ({x}, {y})");
         }
 
-        private void ShiftBodyForward(GameObject[][] grid, Snake snake, int x, int y)
+        private void ClearSnakesFromGrid(GameObject[][] grid, List<Snake> snakes)
         {
             //Clear snakes from board
-            foreach (var s in _game.Board.Snakes)
+            foreach (var s in snakes)
                 foreach (var b in s.Body)
                     grid[b.X][b.Y] = GameObject.FLOOR;
-            //Move head + body of current snake forwards
-            Point newHead = new() { X = snake.Body[0].X + x, Y = snake.Body[0].Y + y };
-            snake.Body.Insert(0, new() { X = newHead.X, Y = newHead.Y });
-            snake.Head = new() { X = newHead.X, Y = newHead.Y };
-            snake.Body.RemoveAt(snake.Body.Count - 1);
+        }
+
+        private void ApplySnakesToGrid(GameObject[][] grid, List<Snake> snakes)
+        {
             //Add snakes to board
-            foreach (var s in _game.Board.Snakes)
+            foreach (var s in snakes)
             {
                 foreach (var b in s.Body)
                     grid[b.X][b.Y] = GameObject.BODY;
@@ -303,28 +308,37 @@ namespace Battlesnake.Algorithm
             }
         }
 
-        private void ShiftBodyBackwards(GameObject[][] grid, GameObject lastTile, Snake snake, Point tail)
+        private void ShiftBodyForward(GameObject[][] grid, Snake snake, int x, int y, bool isFoodTile)
         {
-            //Clear snakes from board
-            foreach (var s in _game.Board.Snakes)
-                foreach (var b in s.Body)
-                    grid[b.X][b.Y] = GameObject.FLOOR;
+            //Move head + body of current snake forwards
+            Point newHead = new() { X = snake.Body[0].X + x, Y = snake.Body[0].Y + y };
+            snake.Body.Insert(0, new() { X = newHead.X, Y = newHead.Y });
+            snake.Head = new() { X = newHead.X, Y = newHead.Y };
+            if (!isFoodTile) snake.Body.RemoveAt(snake.Body.Count - 1);
+        }
+
+        private void ShiftBodyBackwards(GameObject[][] grid, GameObject lastTile, Snake snake, Point tail, bool isFoodTile)
+        {
             grid[snake.Head.X][snake.Head.Y] = lastTile; //Update correct tile from previous move
             //Move head + body of current snake backwards
             snake.Body.RemoveAt(0);
             Point newHead = new() { X = snake.Body[0].X, Y = snake.Body[0].Y };
             snake.Head = new() { X = newHead.X, Y = newHead.Y };
+            if (isFoodTile) snake.Body.RemoveAt(snake.Body.Count - 1);
             snake.Body.Add(new() { X = tail.X, Y = tail.Y });
-            //Add snakes to board
-            foreach (var s in _game.Board.Snakes)
-            {
-                foreach (var b in s.Body)
-                    grid[b.X][b.Y] = GameObject.BODY;
-                grid[s.Head.X][s.Head.Y] = GameObject.HEAD;
-            }
         }
 
-        //https://github.com/calvinl4/battlesnake-winter-2022/blob/e28b8bb44077e148fc72042aa4d745b244d0b05a/utils/minimax.js#L126
+        private List<Point> GetFoodFromGrid(GameObject[][] grid)
+        {
+            int h = grid.Length, w = grid.First().Length;
+            List<Point> foods = new();
+            for (int i = 0; i < h; i++)
+                for (int j = 0; j < w; j++)
+                    if (IsFoodTile(grid, i, j))
+                        foods.Add(new Point() { X = i, Y = j });
+            return foods;
+        }
+
         private double EvaluateState(GameObject[][] grid, Snake me, Snake other, int remainingDepth, int myFoodCount, int otherFoodCount)
         {
             int h = grid.Length, w = grid.First().Length;
@@ -334,6 +348,7 @@ namespace Battlesnake.Algorithm
             int myLength = me.Length;
             int otherLength = other.Length;
             int maxDistance = h + w;
+            List<Point> availableFoods = GetFoodFromGrid(grid);
 
             //Aggresion
             double aggresionScore = 0d;
@@ -381,21 +396,33 @@ namespace Battlesnake.Algorithm
                     {
                         Point possibleMove1 = new() { X = otherHead.X + 1, Y = otherHead.Y };
                         Point possibleMove2 = new() { X = otherHead.X - 1, Y = otherHead.Y };
-                        Point closestFoodMove1 = ChooseClosestFood(possibleMove1);
-                        int distanceMove1 = ManhattenDistance(possibleMove1.X, possibleMove1.Y, closestFoodMove1.X, closestFoodMove1.Y);
-                        Point closestFoodMove2 = ChooseClosestFood(possibleMove2);
-                        int distanceMove2 = ManhattenDistance(possibleMove2.X, possibleMove2.Y, closestFoodMove2.X, closestFoodMove2.Y);
-                        otherSnakeMove = distanceMove1 <= distanceMove2 ? possibleMove1 : possibleMove2;
+                        if (IsInBounds(possibleMove1.X, possibleMove1.Y) && IsInBounds(possibleMove2.X, possibleMove2.Y))
+                        {
+                            Point closestFoodMove1 = FindClosestFood(availableFoods, possibleMove1);
+                            Point closestFoodMove2 = FindClosestFood(availableFoods, possibleMove2);
+                            if (closestFoodMove1 != null && closestFoodMove2 != null)
+                            {
+                                int distanceMove1 = ManhattenDistance(possibleMove1.X, possibleMove1.Y, closestFoodMove1.X, closestFoodMove1.Y);
+                                int distanceMove2 = ManhattenDistance(possibleMove2.X, possibleMove2.Y, closestFoodMove2.X, closestFoodMove2.Y);
+                                otherSnakeMove = distanceMove1 <= distanceMove2 ? possibleMove1 : possibleMove2;
+                            }
+                        }
                     }
                     else if (otherHead.X == 0 && otherNeck.X == 1 || otherHead.X == h - 1 && otherNeck.X == h - 2)
                     {
                         Point possibleMove1 = new() { X = otherHead.X, Y = otherHead.Y + 1 };
                         Point possibleMove2 = new() { X = otherHead.X, Y = otherHead.Y - 1 };
-                        Point closestFoodMove1 = ChooseClosestFood(possibleMove1);
-                        int distanceMove1 = ManhattenDistance(possibleMove1.X, possibleMove1.Y, closestFoodMove1.X, closestFoodMove1.Y);
-                        Point closestFoodMove2 = ChooseClosestFood(possibleMove2);
-                        int distanceMove2 = ManhattenDistance(possibleMove2.X, possibleMove2.Y, closestFoodMove2.X, closestFoodMove2.Y);
-                        otherSnakeMove = distanceMove1 <= distanceMove2 ? possibleMove1 : possibleMove2;
+                        if (IsInBounds(possibleMove1.X, possibleMove1.Y) && IsInBounds(possibleMove2.X, possibleMove2.Y))
+                        {
+                            Point closestFoodMove1 = FindClosestFood(availableFoods, possibleMove1);
+                            Point closestFoodMove2 = FindClosestFood(availableFoods, possibleMove2);
+                            if (closestFoodMove1 != null && closestFoodMove2 != null)
+                            {
+                                int distanceMove1 = ManhattenDistance(possibleMove1.X, possibleMove1.Y, closestFoodMove1.X, closestFoodMove1.Y);
+                                int distanceMove2 = ManhattenDistance(possibleMove2.X, possibleMove2.Y, closestFoodMove2.X, closestFoodMove2.Y);
+                                otherSnakeMove = distanceMove1 <= distanceMove2 ? possibleMove1 : possibleMove2;
+                            }
+                        }
                     }
                 }
                 else //Try to predict snake move
@@ -438,9 +465,12 @@ namespace Battlesnake.Algorithm
                     foodScore = HeuristicConstants.MY_FOOD_VALUE * myFoodCount;
                 else
                 {
-                    Point myClosestFood = FindClosestFood(me);
-                    int distanceToMyClosestFood = ManhattenDistance(myHead.X, myHead.Y, myClosestFood.X, myClosestFood.Y);
-                    foodScore = Math.Pow((maxDistance - distanceToMyClosestFood) / 4, 2);
+                    Point myClosestFood = FindClosestFood(availableFoods, myHead);
+                    if (myClosestFood != null)
+                    {
+                        int distanceToMyClosestFood = ManhattenDistance(myHead.X, myHead.Y, myClosestFood.X, myClosestFood.Y);
+                        foodScore = Math.Pow((maxDistance - distanceToMyClosestFood) / 4, 2);
+                    }
                 }
             }
             score += foodScore;
@@ -452,9 +482,12 @@ namespace Battlesnake.Algorithm
                     theirFoodScore -= HeuristicConstants.OTHER_FOOD_VALUE * otherFoodCount;
                 else
                 {
-                    Point otherClosestFood = FindClosestFood(other);
-                    int distanceToTheirClosestFood = ManhattenDistance(otherHead.X, otherHead.Y, otherClosestFood.X, otherClosestFood.Y);
-                    theirFoodScore = Math.Pow((maxDistance - distanceToTheirClosestFood) / 4, 2);
+                    Point otherClosestFood = FindClosestFood(availableFoods, otherHead);
+                    if (otherClosestFood != null)
+                    {
+                        int distanceToTheirClosestFood = ManhattenDistance(otherHead.X, otherHead.Y, otherClosestFood.X, otherClosestFood.Y);
+                        theirFoodScore = Math.Pow((maxDistance - distanceToTheirClosestFood) / 4, 2);
+                    }
                 }
             }
             score += theirFoodScore;
@@ -524,7 +557,6 @@ namespace Battlesnake.Algorithm
         {
             Point head = new() { X = me.Head.X, Y = me.Head.Y };
             int cavernSize = FloodFillWithLimit(grid, head, me.Length);
-            //int cavernSize = FloodFillMaxScoreWithLimit(grid, me, me.Length);
             if (cavernSize >= HeuristicConstants.SAFE_CAVERN_SIZE * me.Length) return 0;
             double floodFillScore = (HeuristicConstants.FLOODFILL_MAX - HeuristicConstants.FLOODFILL_MIN) / Math.Sqrt(HeuristicConstants.SAFE_CAVERN_SIZE * HeuristicConstants.MAX_SNAKE_LENGTH) * Math.Sqrt(cavernSize) - HeuristicConstants.FLOODFILL_MAX;
             return floodFillScore;
@@ -666,23 +698,6 @@ namespace Battlesnake.Algorithm
             return _dir;
         }
 
-        private int FloodFillMaxScoreWithLimit(GameObject[][] grid, Snake me, int limit)
-        {
-            //return 0;
-            List<int> scores = new();
-            foreach (var (x, y) in _dirs.Keys)
-            {
-                int dx = me.Head.X + x;
-                int dy = me.Head.Y + y;
-                if (IsMoveableTile(dx, dy))
-                {
-                    int score = FloodFillWithLimit(grid, new() { X = dx, Y = dy }, limit);
-                    scores.Add(score);
-                }
-            }
-            return scores.Max();
-        }
-
         private int FloodFillWithLimit(GameObject[][] grid, Point head, int limit)
         {
             Queue<(int x, int y)> queue = new();
@@ -817,16 +832,23 @@ namespace Battlesnake.Algorithm
             return myFoodDistances.First().food;
         }
 
-        private Point ChooseClosestFood(Point position)
+        private Point FindClosestFood(List<Point> foods, Point head)
         {
-            int minDistance = _game.Board.Food.Min(f => ManhattenDistance(f.X, f.Y, position.X, position.Y));
-            return _game.Board.Food.First(f => ManhattenDistance(f.X, f.Y, position.X, position.Y) == minDistance);
-        }
-
-        private Point FindClosestFood(Snake me)
-        {
-            int minDistance = _game.Board.Food.Min(f => ManhattenDistance(f.X, f.Y, me.Head.X, me.Head.Y));
-            return _game.Board.Food.First(f => ManhattenDistance(f.X, f.Y, me.Head.X, me.Head.Y) == minDistance);
+            if (foods.Count == 0) return null; //Base case
+            else if (foods.Count == 1) return foods.First(); //Base case
+            Point bestFood = foods.First();
+            int minDistance = ManhattenDistance(bestFood.X, bestFood.Y, head.X, head.Y);
+            for (int i = 1; i < foods.Count; i++)
+            {
+                Point currentFood = foods[i];
+                int distance = ManhattenDistance(currentFood.X, currentFood.Y, head.X, head.Y);
+                if (minDistance > distance)
+                {
+                    minDistance = distance;
+                    bestFood = currentFood;
+                }
+            }
+            return bestFood;
         }
         #endregion
 
