@@ -17,12 +17,12 @@ namespace Battlesnake.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class GameV2Controller : ControllerBase
+    public class GameTest : ControllerBase
     {
-        private readonly ILogger<GameV2Controller> _logger;
+        private readonly ILogger<GameTest> _logger;
         private readonly Dictionary<string, Direction> _map;
 
-        public GameV2Controller(ILogger<GameV2Controller> logger, Dictionary<string, Direction> map)
+        public GameTest(ILogger<GameTest> logger, Dictionary<string, Direction> map)
         {
             _logger = logger;
             _map = map;
@@ -55,7 +55,7 @@ namespace Battlesnake.API.Controllers
             if (!_map.ContainsKey(id)) _map.Add(id, Direction.LEFT);
 
             Direction currentDir = _map[id];
-            Algo algo = new(game, currentDir, watch);
+            Algo algo = new(game, currentDir, watch, true, 8);
             Direction newDir = algo.CalculateNextMove(game.You, true);
             _map[id] = newDir;
 

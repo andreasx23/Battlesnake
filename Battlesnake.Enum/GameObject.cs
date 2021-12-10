@@ -13,5 +13,6 @@ namespace Battlesnake.Enum
         BODY = '+',
         FLOOR = ' ',
         IS_VISITED = 'O',
+        INTERSECTION = 'B'
     }
 }

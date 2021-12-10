@@ -9,7 +9,8 @@ namespace Battlesnake.Algorithm
     public class HeuristicConstants
     {
         //MINIMAX VALUES
-        public const int MINIMAX_DEPTH = 10;
+        //public const int MINIMAX_DEPTH = 10;
+        //public const int MINIMAX_DEPTH = 8;
         public const int MAX_HEALTH = 100;
         public const double MAX_SNAKE_LENGTH = 30d;
 
@@ -30,6 +31,10 @@ namespace Battlesnake.Algorithm
         public const double FLOODFILL_MAX = 100d;
         public const double FLOODFILL_MIN = 25d;
         public const double SAFE_CAVERN_SIZE = 1.8d;
+
+        //VORONOI
+        public const double VORONOI_VALUE = 0.8d;
+        public const double MAX_VORONOI_COST_VALUE = 1.5d;
 
         //EDGE
         public const double EDGE_VALUE_INNER = 25d;
