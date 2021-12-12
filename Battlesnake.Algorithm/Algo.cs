@@ -40,14 +40,8 @@ namespace Battlesnake.Algorithm
         private readonly Stopwatch _watch;
         private bool IsTimeoutThresholdReached => _watch.Elapsed >= TimeSpan.FromMilliseconds(_game.Game.Timeout - 50);
 
-        private bool _allowVoronoi = false;
-        private int _depth = 10;
-
-        public Algo(GameStatusDTO game, Direction dir, Stopwatch watch, bool allowVoronoi = false, int depth = 10)
+        public Algo(GameStatusDTO game, Direction dir, Stopwatch watch)
         {
-            _allowVoronoi = allowVoronoi;
-            _depth = depth;
-
             IS_LOCAL = false;
             _rand = new();
             _watch = watch;
@@ -189,7 +183,7 @@ namespace Battlesnake.Algorithm
             Print(gridClone);
             Snake meClone = me.Clone();
             Snake otherClone = other.Clone();
-            (double score, Direction move) = Minimax(gridClone, meClone, otherClone, _depth);
+            (double score, Direction move) = Minimax(gridClone, meClone, otherClone, HeuristicConstants.MINIMAX_DEPTH);
             WriteDebugMessage($"Best score from minimax: {score} -- move to perform: {move}");
             return move;
         }
@@ -625,12 +619,9 @@ namespace Battlesnake.Algorithm
             double floodFillScore = myFloodFillScore + otherFloodFillScore;
             score += floodFillScore;
 
-            if (_allowVoronoi)
-            {
-                //Voronoi
-                double voronoiScore = VoronoiAlgorithm.Compute(grid, me, other);
-                score += voronoiScore;
-            }
+            //Voronoi
+            double voronoiScore = VoronoiAlgorithm.ChamberHeuristic(grid, me, other) * HeuristicConstants.VORONOI_VALUE;
+            score += voronoiScore;
 
             //Edge
             double edgeScore = 0d;
@@ -799,7 +790,7 @@ namespace Battlesnake.Algorithm
 
         private double AdjustForFutureUncetainty(double score, int remainingDepth)
         {
-            int pow = _depth - remainingDepth - 2; //TODO MAYBE MAKE SURE THIS ISN'T A NEGATIVE NUMBER!
+            int pow = HeuristicConstants.MINIMAX_DEPTH - remainingDepth - 2; //TODO MAYBE MAKE SURE THIS ISN'T A NEGATIVE NUMBER!
             double futureUncertainty = Math.Pow(HeuristicConstants.FUTURE_UNCERTAINTY_FACOTR, pow);
             return score * futureUncertainty;
         }
