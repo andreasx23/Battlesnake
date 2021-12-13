@@ -35,15 +35,18 @@ namespace Battlesnake.Model
         public int Moves { get; set; } = 0;
         [IgnoreDataMember]
         public int SnakesEaten { get; set; } = 0;
-        [IgnoreDataMember]
-        public NeuralNetwork Brain { get; set; } = new NeuralNetwork(new BipolarSigmoidFunction(Constants.ALPHA), Constants.INPUTS_COUNT, Constants.NEURONS, Constants.OUTPUT_COUNT);
+        //[IgnoreDataMember]
+        //public NeuralNetwork Brain { get; set; } = new NeuralNetwork(new BipolarSigmoidFunction(Constants.ALPHA), Constants.INPUTS_COUNT, Constants.NEURONS, Constants.OUTPUT_COUNT);
 
 
         public Snake Clone()
         {
             List<Point> body = new();
-            foreach (var b in Body)
+            for (int i = 0; i < Body.Count; i++)
+            {
+                Point b = Body[i];
                 body.Add(new Point() { X = b.X, Y = b.Y });
+            }
             return new Snake()
             {
                 Id = Id,

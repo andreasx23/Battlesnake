@@ -19,6 +19,13 @@ namespace Battlesnake.Algorithm
         //https://github.com/a1k0n/tronbot/blob/master/cpp/MyTronBot.cc
         //https://github.com/ellyn/tronbots/blob/master/heuristic.py -- THIS!
 
+        private static readonly (int x, int y)[] _moves = new (int x, int y)[4]
+        {
+            (0, -1), //Left
+            (1, 0), //Down
+            (0, 1), //Right
+            (-1, 0) //Up
+        };
         private static GameObject[][] _grid;
         private const int FRIENDLY = 1;
         private const int ENEMY = 2;
@@ -30,8 +37,10 @@ namespace Battlesnake.Algorithm
             dists[snake.Head.X, snake.Head.Y] = 0;
             bool[,] isVisisted = new bool[h, w];
             Queue<(int x, int y)> queue = new();
-            foreach (var (x, y) in Neighbours(snake.Head.X, snake.Head.Y))
+            List<(int x, int y)> neighbours = Neighbours(snake.Head.X, snake.Head.Y);
+            for (int i = 0; i < neighbours.Count; i++)
             {
+                (int x, int y) = neighbours[i];
                 dists[x, y] = 1;
                 queue.Enqueue((x, y));
             }
@@ -40,8 +49,10 @@ namespace Battlesnake.Algorithm
             {
                 (int x, int y) = queue.Dequeue();
                 int steps = dists[x, y] + 1;
-                foreach (var move in Neighbours(x, y))
+                neighbours = Neighbours(x, y);
+                for (int i = 0; i < neighbours.Count; i++)
                 {
+                    (int x, int y) move = neighbours[i];
                     if (state[move.x, move.y] != 0)
                         continue;
 
@@ -100,14 +111,20 @@ namespace Battlesnake.Algorithm
         {
             int h = _grid.Length, w = _grid.First().Length;
             int[,] state = new int[h, w];
-            foreach (var b in me.Body)
+            for (int i = 0; i < me.Body.Count; i++)
+            {
+                Point b = me.Body[i];
                 state[b.X, b.Y] = FRIENDLY;
-            foreach (var b in other.Body)
+            }
+            for (int i = 0; i < other.Body.Count; i++)
+            {
+                Point b = other.Body[i];
                 state[b.X, b.Y] = ENEMY;
+            }
             return state;
         }
 
-        private static void HopcroftTarjan(int[,] state)
+        private static int[,] HopcroftTarjan(int[,] state)
         {
             int h = _grid.Length, w = _grid.First().Length;
             int[,] parents = new int[h, w], lows = new int[h, w], depths = new int[h, w];
@@ -123,6 +140,7 @@ namespace Battlesnake.Algorithm
             parents[0, 0] = -1;
             bool[,] isVisited = new bool[h, w];
             RecHopcroftTarjan(state, 0, 0, 0, depths, parents, isVisited, lows);
+            return state;
         }
 
         private static int IdMat(int row, int column) => row + column;
@@ -133,8 +151,11 @@ namespace Battlesnake.Algorithm
             depths[row, column] = depth;
             lows[row, column] = depth;
             int children = 0;
-            foreach (var (x, y) in Neighbours(row, column))
+
+            List<(int x, int y)> neighbours = Neighbours(row, column);
+            for (int i = 0; i < neighbours.Count; i++)
             {
+                (int x, int y) = neighbours[i];
                 if (state[x, y] != 0 && state[x, y] != ARTICULATION)
                     continue;
 
@@ -160,27 +181,21 @@ namespace Battlesnake.Algorithm
             Stopwatch watch = Stopwatch.StartNew();
             _grid = grid;
             int[,] state = GetState(me, other);
-            HopcroftTarjan(state);
+            state = HopcroftTarjan(state);
             double score = ComputeVoroni(state, me, other);
-            if (Util.IsDebug) Debug.WriteLine($"Chamber heuristic voronoi took: {watch.Elapsed} to run");
+            //if (Util.IsDebug) Debug.WriteLine($"Chamber heuristic voronoi took: {watch.Elapsed} to run");
             return score;
         }
 
         #region Private helper methods
         private static List<(int x, int y)> Neighbours(int x, int y)
         {
-            List<(int x, int y)> moves = new()
-            {
-                (0, -1), //Left
-                (1, 0), //Down
-                (0, 1), //Right
-                (-1, 0) //Up
-            };
             List<(int x, int y)> neighbours = new();
-            foreach (var move in moves)
+            for (int i = 0; i < _moves.Length; i++)
             {
+                (int x, int y) move = _moves[i];
                 int dx = move.x + x, dy = move.y + y;
-                if (IsValid(dx, dy)) 
+                if (IsValid(dx, dy))
                     neighbours.Add((dx, dy));
             }
             return neighbours;

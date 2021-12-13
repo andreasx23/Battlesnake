@@ -52,7 +52,8 @@ namespace Battlesnake.API.Controllers
         {
             Stopwatch watch = Stopwatch.StartNew();
             string id = game.Game.Id;
-            if (!_map.ContainsKey(id)) _map.Add(id, Direction.LEFT);
+            if (Util.IsDebug && !_map.ContainsKey(id)) 
+                _map.Add(id, Direction.LEFT);
 
             Direction currentDir = _map[id];
             Algo algo = new(game, currentDir, watch);
