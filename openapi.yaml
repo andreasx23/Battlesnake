@@ -1,445 +1,404 @@
-openapi: 3.0.1
 info:
   title: WebApi
   version: v1
+host: battlesnakebwuk.appspot.com
 paths:
   /api/Game:
     get:
       tags:
         - Game
+      operationId: ApiGameGet
       responses:
         '200':
           description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Whoami'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/Whoami'
+          schema:
+            $ref: '#/definitions/Whoami'
+      parameters: []
+      produces:
+        - application/json
+        - text/json
   /api/Game/Start:
     post:
       tags:
         - Game
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
+      operationId: ApiGameStartPost
       responses:
         '200':
           description: Success
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/GameStatusDTO'
+      consumes:
+        - application/json-patch+json
+        - application/json
+        - text/json
   /api/Game/Move:
     post:
       tags:
         - Game
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
+      operationId: ApiGameMovePost
       responses:
         '200':
           description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MoveDTO'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/MoveDTO'
+          schema:
+            $ref: '#/definitions/MoveDTO'
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/GameStatusDTO'
+      consumes:
+        - application/json-patch+json
+        - application/json
+        - text/json
+      produces:
+        - application/json
+        - text/json
   /api/Game/End:
     post:
       tags:
         - Game
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
+      operationId: ApiGameEndPost
       responses:
         '200':
           description: Success
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/GameStatusDTO'
+      consumes:
+        - application/json-patch+json
+        - application/json
+        - text/json
   /api/GameTest:
     get:
       tags:
         - GameTest
+      operationId: ApiGameTestGet
       responses:
         '200':
           description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Whoami'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/Whoami'
+          schema:
+            $ref: '#/definitions/Whoami'
+      parameters: []
+      produces:
+        - application/json
+        - text/json
   /api/GameTest/Start:
     post:
       tags:
         - GameTest
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
+      operationId: ApiGameTestStartPost
       responses:
         '200':
           description: Success
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/GameStatusDTO'
+      consumes:
+        - application/json-patch+json
+        - application/json
+        - text/json
   /api/GameTest/Move:
     post:
       tags:
         - GameTest
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
+      operationId: ApiGameTestMovePost
       responses:
         '200':
           description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MoveDTO'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/MoveDTO'
+          schema:
+            $ref: '#/definitions/MoveDTO'
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/GameStatusDTO'
+      consumes:
+        - application/json-patch+json
+        - application/json
+        - text/json
+      produces:
+        - application/json
+        - text/json
   /api/GameTest/End:
     post:
       tags:
         - GameTest
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
+      operationId: ApiGameTestEndPost
       responses:
         '200':
           description: Success
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/GameStatusDTO'
+      consumes:
+        - application/json-patch+json
+        - application/json
+        - text/json
   /api/GameV2:
     get:
       tags:
         - GameV2
+      operationId: ApiGameV2Get
       responses:
         '200':
           description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Whoami'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/Whoami'
+          schema:
+            $ref: '#/definitions/Whoami'
+      parameters: []
+      produces:
+        - application/json
+        - text/json
   /api/GameV2/Start:
     post:
       tags:
         - GameV2
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
+      operationId: ApiGameV2StartPost
       responses:
         '200':
           description: Success
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/GameStatusDTO'
+      consumes:
+        - application/json-patch+json
+        - application/json
+        - text/json
   /api/GameV2/Move:
     post:
       tags:
         - GameV2
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
+      operationId: ApiGameV2MovePost
       responses:
         '200':
           description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MoveDTO'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/MoveDTO'
+          schema:
+            $ref: '#/definitions/MoveDTO'
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/GameStatusDTO'
+      consumes:
+        - application/json-patch+json
+        - application/json
+        - text/json
+      produces:
+        - application/json
+        - text/json
   /api/GameV2/End:
     post:
       tags:
         - GameV2
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/GameStatusDTO'
+      operationId: ApiGameV2EndPost
       responses:
         '200':
           description: Success
-components:
-  schemas:
-    Board:
-      type: object
-      properties:
-        height:
-          type: integer
-          format: int32
-        width:
-          type: integer
-          format: int32
-        food:
-          type: array
-          items:
-            $ref: '#/components/schemas/Point'
-          nullable: true
-        hazards:
-          type: array
-          items:
-            $ref: '#/components/schemas/Point'
-          nullable: true
-        snakes:
-          type: array
-          items:
-            $ref: '#/components/schemas/Snake'
-          nullable: true
-      additionalProperties: false
-    Direction:
-      enum:
-        - 0
-        - 1
-        - 2
-        - 3
-        - 4
-      type: integer
-      format: int32
-    Game:
-      type: object
-      properties:
-        id:
-          type: string
-          nullable: true
-        ruleset:
-          $ref: '#/components/schemas/Ruleset'
-        timeout:
-          type: integer
-          format: int32
-        source:
-          type: string
-          nullable: true
-      additionalProperties: false
-    GameStatusDTO:
-      type: object
-      properties:
-        game:
-          $ref: '#/components/schemas/Game'
-        turn:
-          type: integer
-          format: int32
-        board:
-          $ref: '#/components/schemas/Board'
-        you:
-          $ref: '#/components/schemas/Snake'
-      additionalProperties: false
-    MoveDTO:
-      type: object
-      properties:
-        move:
-          type: string
-          nullable: true
-        shout:
-          type: string
-          nullable: true
-      additionalProperties: false
-    Point:
-      type: object
-      properties:
-        x:
-          type: integer
-          format: int32
-        'y':
-          type: integer
-          format: int32
-      additionalProperties: false
-    Ruleset:
-      type: object
-      properties:
-        name:
-          type: string
-          nullable: true
-        version:
-          type: string
-          nullable: true
-        settings:
-          $ref: '#/components/schemas/RulesetSettings'
-      additionalProperties: false
-    RulesetSettings:
-      type: object
-      properties:
-        foodSpawnChance:
-          type: integer
-          format: int32
-        minimumFood:
-          type: integer
-          format: int32
-        hazardDamagePerTurn:
-          type: integer
-          format: int32
-        shrinkEveryNTurns:
-          type: integer
-          format: int32
-        allowBodyCollisions:
-          type: boolean
-        sharedElimination:
-          type: boolean
-        sharedHealth:
-          type: boolean
-        sharedLength:
-          type: boolean
-      additionalProperties: false
-    Snake:
-      type: object
-      properties:
-        id:
-          type: string
-          nullable: true
-        name:
-          type: string
-          nullable: true
-        health:
-          type: integer
-          format: int32
-        head:
-          $ref: '#/components/schemas/Point'
-        body:
-          type: array
-          items:
-            $ref: '#/components/schemas/Point'
-          nullable: true
-        latency:
-          type: string
-          nullable: true
-        length:
-          type: integer
-          format: int32
-        shout:
-          type: string
-          nullable: true
-        squad:
-          type: string
-          nullable: true
-        isAlive:
-          type: boolean
-        direction:
-          $ref: '#/components/schemas/Direction'
-        score:
-          type: integer
-          format: int32
-        moves:
-          type: integer
-          format: int32
-        snakesEaten:
-          type: integer
-          format: int32
-      additionalProperties: false
-    Whoami:
-      type: object
-      properties:
-        apiVersion:
-          type: string
-          nullable: true
-        author:
-          type: string
-          nullable: true
-        color:
-          type: string
-          nullable: true
-          readOnly: true
-        head:
-          type: string
-          nullable: true
-        tail:
-          type: string
-          nullable: true
-        version:
-          type: string
-          nullable: true
-      additionalProperties: false
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/GameStatusDTO'
+      consumes:
+        - application/json-patch+json
+        - application/json
+        - text/json
+swagger: '2.0'
+definitions:
+  Board:
+    type: object
+    properties:
+      height:
+        type: integer
+        format: int32
+      width:
+        type: integer
+        format: int32
+      food:
+        type: array
+        items:
+          $ref: '#/definitions/Point'
+        x-nullable: true
+      hazards:
+        type: array
+        items:
+          $ref: '#/definitions/Point'
+        x-nullable: true
+      snakes:
+        type: array
+        items:
+          $ref: '#/definitions/Snake'
+        x-nullable: true
+    additionalProperties: false
+  Direction:
+    enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+    type: integer
+    format: int32
+  Game:
+    type: object
+    properties:
+      id:
+        type: string
+        x-nullable: true
+      ruleset:
+        $ref: '#/definitions/Ruleset'
+      timeout:
+        type: integer
+        format: int32
+      source:
+        type: string
+        x-nullable: true
+    additionalProperties: false
+  GameStatusDTO:
+    type: object
+    properties:
+      game:
+        $ref: '#/definitions/Game'
+      turn:
+        type: integer
+        format: int32
+      board:
+        $ref: '#/definitions/Board'
+      you:
+        $ref: '#/definitions/Snake'
+    additionalProperties: false
+  MoveDTO:
+    type: object
+    properties:
+      move:
+        type: string
+        x-nullable: true
+      shout:
+        type: string
+        x-nullable: true
+    additionalProperties: false
+  Point:
+    type: object
+    properties:
+      x:
+        type: integer
+        format: int32
+      'y':
+        type: integer
+        format: int32
+    additionalProperties: false
+  Ruleset:
+    type: object
+    properties:
+      name:
+        type: string
+        x-nullable: true
+      version:
+        type: string
+        x-nullable: true
+      settings:
+        $ref: '#/definitions/RulesetSettings'
+    additionalProperties: false
+  RulesetSettings:
+    type: object
+    properties:
+      foodSpawnChance:
+        type: integer
+        format: int32
+      minimumFood:
+        type: integer
+        format: int32
+      hazardDamagePerTurn:
+        type: integer
+        format: int32
+      shrinkEveryNTurns:
+        type: integer
+        format: int32
+      allowBodyCollisions:
+        type: boolean
+      sharedElimination:
+        type: boolean
+      sharedHealth:
+        type: boolean
+      sharedLength:
+        type: boolean
+    additionalProperties: false
+  Snake:
+    type: object
+    properties:
+      id:
+        type: string
+        x-nullable: true
+      name:
+        type: string
+        x-nullable: true
+      health:
+        type: integer
+        format: int32
+      head:
+        $ref: '#/definitions/Point'
+      body:
+        type: array
+        items:
+          $ref: '#/definitions/Point'
+        x-nullable: true
+      latency:
+        type: string
+        x-nullable: true
+      length:
+        type: integer
+        format: int32
+      shout:
+        type: string
+        x-nullable: true
+      squad:
+        type: string
+        x-nullable: true
+      isAlive:
+        type: boolean
+      direction:
+        $ref: '#/definitions/Direction'
+      score:
+        type: integer
+        format: int32
+      moves:
+        type: integer
+        format: int32
+      snakesEaten:
+        type: integer
+        format: int32
+    additionalProperties: false
+  Whoami:
+    type: object
+    properties:
+      apiVersion:
+        type: string
+        x-nullable: true
+      author:
+        type: string
+        x-nullable: true
+      color:
+        type: string
+        readOnly: true
+        x-nullable: true
+      head:
+        type: string
+        x-nullable: true
+      tail:
+        type: string
+        x-nullable: true
+      version:
+        type: string
+        x-nullable: true
+    additionalProperties: false
+x-components: {}
