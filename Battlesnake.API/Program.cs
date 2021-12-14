@@ -33,11 +33,14 @@ namespace Battlesnake.API
             }
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
+        public static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            string port = "8080";
+            string url = $"http://0.0.0.0:{port}";
+            IHostBuilder host = Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseStartup<Startup>().UseUrls(url);
                 })
                 .ConfigureLogging(logging =>
                 {
@@ -45,5 +48,7 @@ namespace Battlesnake.API
                     logging.SetMinimumLevel(LogLevel.Trace);
                 })
                 .UseNLog();  // NLog: Setup NLog for Dependency injection
+            return host;
+        }
     }
 }

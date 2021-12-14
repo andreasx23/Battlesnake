@@ -1,0 +1,28 @@
+#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+WORKDIR /src
+COPY ["Battlesnake.API/Battlesnake.API.csproj", "Battlesnake.API/"]
+COPY ["Battlesnake.DTOModel/Battlesnake.DTOModel.csproj", "Battlesnake.DTOModel/"]
+COPY ["Battlesnake.Model/Battlesnake.Model.csproj", "Battlesnake.Model/"]
+COPY ["Battlesnake.AI/Battlesnake.AI.csproj", "Battlesnake.AI/"]
+COPY ["Battlesnake.Enum/Battlesnake.Enum.csproj", "Battlesnake.Enum/"]
+COPY ["Battlesnake.Utility/Battlesnake.Utility.csproj", "Battlesnake.Utility/"]
+COPY ["Battlesnake.Algorithm/Battlesnake.Algorithm.csproj", "Battlesnake.Algorithm/"]
+RUN dotnet restore "Battlesnake.API/Battlesnake.API.csproj"
+COPY . .
+WORKDIR "/src/Battlesnake.API"
+RUN dotnet build "Battlesnake.API.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "Battlesnake.API.csproj" -c Release -o /app/publish
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "Battlesnake.API.dll"]

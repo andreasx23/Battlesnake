@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Battlesnake.Utility", "Batt
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9A8E8BDA-A25D-48C6-84A2-C5939576BD4B}"
 	ProjectSection(SolutionItems) = preProject
+		app.yaml = app.yaml
+		Dockerfile = Dockerfile
 		openapi.yaml = openapi.yaml
 	EndProjectSection
 EndProject
