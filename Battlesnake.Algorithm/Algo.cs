@@ -42,7 +42,7 @@ namespace Battlesnake.Algorithm
         };
 
         private readonly Stopwatch _watch;
-        private bool IsTimeoutThresholdReached => _watch.Elapsed >= TimeSpan.FromMilliseconds(_game.Game.Timeout - 50);
+        private bool IsTimeoutThresholdReached => _watch.Elapsed >= TimeSpan.FromMilliseconds(_game.Game.Timeout - 80);
 
         public Algo(GameStatusDTO game, Direction dir, Stopwatch watch)
         {
@@ -187,13 +187,13 @@ namespace Battlesnake.Algorithm
                 if (Util.IsDebug) WriteDebugMessage($"THRESHOLD! {_watch.Elapsed}");
                 return (_currentBestMinimaxScore, _currentBestMinimaxMove);
             }
-            
+
             if (depth == 0)
             {
                 double evaluatedState = EvaluateState(grid, me, other, depth, myFoodCount, otherFoodCount);
                 return (evaluatedState, Direction.NO_MOVE);
             }
-            
+
             if (isMaximizingPlayer) //Only evaluate if game is over when it's my turn because it takes two depths for a turn
             {
                 (double score, bool isGameOver) = EvaluateIfGameIsOver(me, other, depth);
@@ -788,6 +788,7 @@ namespace Battlesnake.Algorithm
 
             bool isGameOver = false;
             if (mySnakeDead || otherSnakeDead || mySnakeMaybeDead || otherSnakeMaybeDead) isGameOver = true;
+
             return (score, isGameOver);
         }
 
@@ -938,7 +939,7 @@ namespace Battlesnake.Algorithm
                 distances[snake.Key] = snake.Value.OrderBy(food => food.distance).ToList(); //Sort distances by shortest distance
 
             List<(Point food, int distance)> myFoodDistances = distances[me.Id];
-            if (Util.IsDebug) 
+            if (Util.IsDebug)
                 WriteDebugMessage(string.Join(", ", myFoodDistances));
 
             if (distances.Count == 1 || myFoodDistances.Count == 1)

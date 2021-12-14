@@ -1,0 +1,445 @@
+openapi: 3.0.1
+info:
+  title: WebApi
+  version: v1
+paths:
+  /api/Game:
+    get:
+      tags:
+        - Game
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Whoami'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Whoami'
+  /api/Game/Start:
+    post:
+      tags:
+        - Game
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+      responses:
+        '200':
+          description: Success
+  /api/Game/Move:
+    post:
+      tags:
+        - Game
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoveDTO'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/MoveDTO'
+  /api/Game/End:
+    post:
+      tags:
+        - Game
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+      responses:
+        '200':
+          description: Success
+  /api/GameTest:
+    get:
+      tags:
+        - GameTest
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Whoami'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Whoami'
+  /api/GameTest/Start:
+    post:
+      tags:
+        - GameTest
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+      responses:
+        '200':
+          description: Success
+  /api/GameTest/Move:
+    post:
+      tags:
+        - GameTest
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoveDTO'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/MoveDTO'
+  /api/GameTest/End:
+    post:
+      tags:
+        - GameTest
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+      responses:
+        '200':
+          description: Success
+  /api/GameV2:
+    get:
+      tags:
+        - GameV2
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Whoami'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Whoami'
+  /api/GameV2/Start:
+    post:
+      tags:
+        - GameV2
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+      responses:
+        '200':
+          description: Success
+  /api/GameV2/Move:
+    post:
+      tags:
+        - GameV2
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoveDTO'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/MoveDTO'
+  /api/GameV2/End:
+    post:
+      tags:
+        - GameV2
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/GameStatusDTO'
+      responses:
+        '200':
+          description: Success
+components:
+  schemas:
+    Board:
+      type: object
+      properties:
+        height:
+          type: integer
+          format: int32
+        width:
+          type: integer
+          format: int32
+        food:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          nullable: true
+        hazards:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          nullable: true
+        snakes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Snake'
+          nullable: true
+      additionalProperties: false
+    Direction:
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+      type: integer
+      format: int32
+    Game:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        ruleset:
+          $ref: '#/components/schemas/Ruleset'
+        timeout:
+          type: integer
+          format: int32
+        source:
+          type: string
+          nullable: true
+      additionalProperties: false
+    GameStatusDTO:
+      type: object
+      properties:
+        game:
+          $ref: '#/components/schemas/Game'
+        turn:
+          type: integer
+          format: int32
+        board:
+          $ref: '#/components/schemas/Board'
+        you:
+          $ref: '#/components/schemas/Snake'
+      additionalProperties: false
+    MoveDTO:
+      type: object
+      properties:
+        move:
+          type: string
+          nullable: true
+        shout:
+          type: string
+          nullable: true
+      additionalProperties: false
+    Point:
+      type: object
+      properties:
+        x:
+          type: integer
+          format: int32
+        'y':
+          type: integer
+          format: int32
+      additionalProperties: false
+    Ruleset:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        version:
+          type: string
+          nullable: true
+        settings:
+          $ref: '#/components/schemas/RulesetSettings'
+      additionalProperties: false
+    RulesetSettings:
+      type: object
+      properties:
+        foodSpawnChance:
+          type: integer
+          format: int32
+        minimumFood:
+          type: integer
+          format: int32
+        hazardDamagePerTurn:
+          type: integer
+          format: int32
+        shrinkEveryNTurns:
+          type: integer
+          format: int32
+        allowBodyCollisions:
+          type: boolean
+        sharedElimination:
+          type: boolean
+        sharedHealth:
+          type: boolean
+        sharedLength:
+          type: boolean
+      additionalProperties: false
+    Snake:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        health:
+          type: integer
+          format: int32
+        head:
+          $ref: '#/components/schemas/Point'
+        body:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          nullable: true
+        latency:
+          type: string
+          nullable: true
+        length:
+          type: integer
+          format: int32
+        shout:
+          type: string
+          nullable: true
+        squad:
+          type: string
+          nullable: true
+        isAlive:
+          type: boolean
+        direction:
+          $ref: '#/components/schemas/Direction'
+        score:
+          type: integer
+          format: int32
+        moves:
+          type: integer
+          format: int32
+        snakesEaten:
+          type: integer
+          format: int32
+      additionalProperties: false
+    Whoami:
+      type: object
+      properties:
+        apiVersion:
+          type: string
+          nullable: true
+        author:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+          readOnly: true
+        head:
+          type: string
+          nullable: true
+        tail:
+          type: string
+          nullable: true
+        version:
+          type: string
+          nullable: true
+      additionalProperties: false
