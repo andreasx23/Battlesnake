@@ -113,13 +113,13 @@ namespace Battlesnake.Algorithm
             int[,] state = new int[h, w];
             for (int i = 0; i < me.Body.Count; i++)
             {
-                Point b = me.Body[i];
-                state[b.X, b.Y] = FRIENDLY;
+                Point body = me.Body[i];
+                state[body.X, body.Y] = FRIENDLY;
             }
             for (int i = 0; i < other.Body.Count; i++)
             {
-                Point b = other.Body[i];
-                state[b.X, b.Y] = ENEMY;
+                Point body = other.Body[i];
+                state[body.X, body.Y] = ENEMY;
             }
             return state;
         }

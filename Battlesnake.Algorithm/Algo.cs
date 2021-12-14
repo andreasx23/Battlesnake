@@ -291,7 +291,7 @@ namespace Battlesnake.Algorithm
                 Snake snake = snakes[i];
                 for (int j = 0; j < snake.Body.Count; j++)
                 {
-                    Point body = snake.Body[i];
+                    Point body = snake.Body[j];
                     grid[body.X][body.Y] = GameObject.FLOOR;
                 }
             }
@@ -305,7 +305,7 @@ namespace Battlesnake.Algorithm
                 Snake snake = snakes[i];
                 for (int j = 0; j < snake.Body.Count; j++)
                 {
-                    Point body = snake.Body[i];
+                    Point body = snake.Body[j];
                     grid[body.X][body.Y] = GameObject.BODY;
                 }
                 grid[snake.Head.X][snake.Head.Y] = GameObject.HEAD;
@@ -1130,27 +1130,27 @@ namespace Battlesnake.Algorithm
             int h = game.Board.Height - 1;
             for (int i = 0; i < game.Board.Food.Count; i++)
             {
-                Point item = game.Board.Food[i];
-                item.Y = h - item.Y;
-                int temp = item.X;
-                item.X = item.Y;
-                item.Y = temp;
+                Point food = game.Board.Food[i];
+                food.Y = h - food.Y;
+                int temp = food.X;
+                food.X = food.Y;
+                food.Y = temp;
             }
 
             for (int i = 0; i < game.Board.Snakes.Count; i++)
             {
-                Snake s = game.Board.Snakes[i];
-                s.Head.Y = h - s.Head.Y;
-                int temp = s.Head.X;
-                s.Head.X = s.Head.Y;
-                s.Head.Y = temp;
-                for (int j = 0; j < s.Body.Count; j++)
+                Snake snake = game.Board.Snakes[i];
+                snake.Head.Y = h - snake.Head.Y;
+                int temp = snake.Head.X;
+                snake.Head.X = snake.Head.Y;
+                snake.Head.Y = temp;
+                for (int j = 0; j < snake.Body.Count; j++)
                 {
-                    Point b = s.Body[j];
-                    b.Y = h - b.Y;
-                    temp = b.X;
-                    b.X = b.Y;
-                    b.Y = temp;
+                    Point body = snake.Body[j];
+                    body.Y = h - body.Y;
+                    temp = body.X;
+                    body.X = body.Y;
+                    body.Y = temp;
                 }
             }
 
@@ -1160,11 +1160,11 @@ namespace Battlesnake.Algorithm
             game.You.Head.Y = t;
             for (int i = 0; i < game.You.Body.Count; i++)
             {
-                Point b = game.You.Body[i];
-                b.Y = h - b.Y;
-                int temp = b.X;
-                b.X = b.Y;
-                b.Y = temp;
+                Point body = game.You.Body[i];
+                body.Y = h - body.Y;
+                int temp = body.X;
+                body.X = body.Y;
+                body.Y = temp;
             }
         }
 
