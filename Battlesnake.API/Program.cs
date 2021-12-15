@@ -35,12 +35,10 @@ namespace Battlesnake.API
 
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
-            string port = "8080";
-            string url = $"http://0.0.0.0:{port}";
             IHostBuilder host = Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>().UseUrls(url);
+                    webBuilder.UseStartup<Startup>();
                 })
                 .ConfigureLogging(logging =>
                 {
