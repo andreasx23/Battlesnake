@@ -97,13 +97,73 @@ namespace Battlesnake.Algorithm
             return score;
         }
 
+        //https://github.com/aleksiy325/snek-two/blob/da589b945e347c5178f6cc0c8b190a28651cce50/src/common/game_state.cpp
+        //https://github.com/aleksiy325/snek-two/blob/da589b945e347c5178f6cc0c8b190a28651cce50/src/strategies/minimax_snake.cpp
+        private static (int score, int depth) GameStateVoronoi(Snake me, Snake other)
+        {
+            int myId = 0;
+            int otherId = 1;
+            int depth = 0;
+            int foodDepth = -1;
+            (int x, int y, int id) pairDepthMark = (-1, -1, -1);
+            const int MARK = -1;
+            Queue<(int x, int y, int id)> queue = new();
+            Dictionary<(int x, int y), int> isVisited = new();
+            int[] counts = new int[2];
+            queue.Enqueue((me.Head.X, me.Head.Y, myId));
+            isVisited.Add((me.Head.X, me.Head.Y), myId);
+            queue.Enqueue((other.Head.X, other.Head.Y, otherId));
+            isVisited.Add((other.Head.X, other.Head.Y), otherId);
+            queue.Enqueue(pairDepthMark);
+            while (queue.Any())
+            {
+                (int x, int y, int id) current = queue.Dequeue();
+                if (current == pairDepthMark)
+                {
+                    depth++;
+                    queue.Enqueue(pairDepthMark);
+                    if (queue.Peek() == pairDepthMark)
+                        break;
+                }
+                else
+                {
+                    foreach (var (x, y) in Neighbours(current.x, current.y))
+                    {
+                        if (isVisited.TryGetValue((x, y), out int id))
+                        {
+                            if (id != MARK && id != current.id)
+                            {
+                                counts[id]--;
+                                isVisited[(x, y)] = MARK;
+                            }
+                        }
+                        else
+                        {
+                            if (_grid[x][y] == GameObject.FOOD && current.id == myId && foodDepth == -1)
+                                foodDepth = depth;
+                            counts[current.id]++;
+                            isVisited[(x, y)] = current.id;
+                            queue.Enqueue((x, y, current.id));
+                        }
+                    }
+                }
+            }
+            return (counts[myId], foodDepth);
+        }
+
+        public static (int score, int depth) VoronoiHeuristicNew(GameObject[][] grid, Snake me, Snake other)
+        {
+            _grid = grid;
+            return GameStateVoronoi(me, other);
+        }
+
         public static double VoronoiHeuristic(GameObject[][] grid, Snake me, Snake other)
         {
             Stopwatch watch = Stopwatch.StartNew();
             _grid = grid;
             int[,] state = GetState(me, other);
             double score = ComputeVoroni(state, me, other);
-            if (Util.IsDebug) Debug.WriteLine($"Voronoi took: {watch.Elapsed} to run");
+            //if (Util.IsDebug) Debug.WriteLine($"Voronoi took: {watch.Elapsed} to run");
             return score;
         }
 

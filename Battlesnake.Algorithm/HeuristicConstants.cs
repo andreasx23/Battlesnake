@@ -9,7 +9,7 @@ namespace Battlesnake.Algorithm
     public class HeuristicConstants
     {
         //MINIMAX VALUES
-        public const int MINIMAX_DEPTH = 8; //Used to be 10 without voronoi
+        public const int MINIMAX_DEPTH = 8;
         public const int MAX_HEALTH = 100;
         public const double MAX_SNAKE_LENGTH = 30d;
 
@@ -18,7 +18,6 @@ namespace Battlesnake.Algorithm
 
         //AGGRESSION
         public const double AGGRESSION_VALUE = 7.5d;
-        public const double CORNOR_AGGRESSION_VALUE = 2.5d;
 
         //FOOD
         public const double MY_FOOD_VALUE = 50d;
@@ -33,6 +32,7 @@ namespace Battlesnake.Algorithm
 
         //VORONOI
         public const double VORONOI_VALUE = 1d;
+        public const double VORONOI_VALUE_NEW = 0.61d;
 
         //EDGE
         public const double EDGE_VALUE_INNER = 25d;
