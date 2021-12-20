@@ -14,32 +14,20 @@ namespace Battlesnake.Algorithm
     {
         private const bool IS_LOCAL = false;
         public GameObject[][] Grid { get; private set; }
-        public ZobristHash Hash { get; private set; }
-        public int Key { get; private set; }
+        //public ZobristHash Hash { get; private set; }
+        public int Key { get; private set; } = 0;
 
-        private bool _allowTT = false;
         public State(GameObject[][] grid)
         {
             Grid = grid;
-            Hash = new ZobristHash(grid.Length, grid.First().Length, 4);
-            Key = Hash.ConvertGridToHash(grid);
-        }
-
-        public State(GameObject[][] grid, bool allowTT)
-        {
-            Grid = grid;
-            _allowTT = allowTT;
-            if (allowTT)
-            {
-                Hash = new ZobristHash(grid.Length, grid.First().Length, 4);
-                Key = Hash.ConvertGridToHash(grid);
-            }
+            //Hash = new ZobristHash(grid.Length, grid.First().Length, 4);
+            Key = ZobristHash.Instance.ConvertGridToHash(grid);
         }
 
         public State(GameObject[][] grid, ZobristHash hash)
         {
             Grid = grid;
-            Hash = hash;
+            //Hash = hash;
         }
 
         public void ClearSnakesFromGrid(List<Snake> snakes)
@@ -76,36 +64,34 @@ namespace Battlesnake.Algorithm
             //Store postions for hash update
             Point oldHead = new() { X = snake.Head.X, Y = snake.Head.Y };
             Point oldTail = new() { X = snake.Body.Last().X, Y = snake.Body.Last().Y };
+
             //Move head + body of current snake forwards
             Point newHead = new() { X = snake.Body[0].X + x, Y = snake.Body[0].Y + y };
             GameObject destinationTile = Grid[newHead.X][newHead.Y];
-
             snake.Body.Insert(0, new() { X = newHead.X, Y = newHead.Y });
             snake.Head = new() { X = newHead.X, Y = newHead.Y };
             if (!isFoodTile) snake.Body.RemoveAt(snake.Body.Count - 1);
 
-            //Key = Hash.UpdateHashForward(Key, oldHead, snake.Head, oldTail, destinationTile);
+            //Update hash
+            Key = ZobristHash.Instance.UpdateHashForward(Key, oldHead, snake.Head, oldTail, destinationTile);
         }
 
         public void ShiftBodyBackwards(GameObject lastTile, Snake snake, Point tail, bool isFoodTile)
         {
+            //Store postions for hash update
             Point oldHead = new() { X = snake.Head.X, Y = snake.Head.Y };
             Point oldTail = new() { X = snake.Body.Last().X, Y = snake.Body.Last().Y };
 
-            Grid[snake.Head.X][snake.Head.Y] = lastTile; //Update correct tile from previous move
             //Move head + body of current snake backwards
+            Grid[snake.Head.X][snake.Head.Y] = lastTile; //Update correct tile from previous move
             snake.Body.RemoveAt(0);
             Point newHead = new() { X = snake.Body[0].X, Y = snake.Body[0].Y };
             snake.Head = new() { X = newHead.X, Y = newHead.Y };
             if (isFoodTile) snake.Body.RemoveAt(snake.Body.Count - 1);
             snake.Body.Add(new() { X = tail.X, Y = tail.Y });
 
-            //Key = Hash.UpdateHashBackwards(Key, oldHead, snake.Head, oldTail, tail, lastTile);
-        }
-
-        public void UpdateKeyFromGrid()
-        {
-            Key = Hash.ConvertGridToHash(Grid);
+            //Store previous hash
+            Key = ZobristHash.Instance.UpdateHashBackwards(Key, oldHead, snake.Head, oldTail, tail, lastTile);
         }
 
         public bool IsGridSame(GameObject[][] other)
@@ -123,13 +109,13 @@ namespace Battlesnake.Algorithm
 
         public State ShallowClone()
         {
-            return new State(Grid, Hash)
+            return new State(Grid, ZobristHash.Instance)
             {
                 Key = Key
             };
         }
 
-        public State DeepClone()
+        public GameObject[][] DeepCloneGrid()
         {
             int h = Grid.Length, w = Grid.First().Length;
             GameObject[][] clone = new GameObject[h][];
@@ -139,21 +125,16 @@ namespace Battlesnake.Algorithm
                 for (int j = 0; j < w; j++)
                     clone[i][j] = Grid[i][j];
             }
+            return clone;
+        }
 
-            if (_allowTT)
+        public State DeepClone()
+        {
+            GameObject[][] clone = DeepCloneGrid();
+            return new State(clone, ZobristHash.Instance)
             {
-                return new State(clone, Hash)
-                {
-                    Key = Key
-                };
-            }
-            else
-            {
-                return new State(clone, false)
-                {
-                    Key = Key
-                };
-            }
+                Key = Key
+            };
         }
 
         public void Print()

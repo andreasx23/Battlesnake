@@ -10,28 +10,50 @@ using System.Threading.Tasks;
 
 namespace Battlesnake.Algorithm
 {
-    public class ZobristHash
+    public sealed class ZobristHash
     {
-        private readonly static int SEED = Guid.NewGuid().GetHashCode();
+        private static readonly object padlock = new();
+        private static ZobristHash _instance = null;
         private readonly Random _rand;
         private readonly int[][] _zobristNumbers;
         private readonly int _height;
 
         //TODO FIND HOW TO IMPLEMENT IT WITH VARIABLE HEIGHTS ETC
-        public ZobristHash(int height, int width, int amountOfPieces)
+        //private ZobristHash(int height, int width, int amountOfPieces)
+        //{
+        //    _rand = new Random(SEED);
+        //    _zobristNumbers = new int[height * width][];
+        //    for (int i = 0; i < _zobristNumbers.Length; i++)
+        //    {
+        //        _zobristNumbers[i] = new int[amountOfPieces];
+        //        for (int j = 0; j < _zobristNumbers[i].Length; j++)
+        //            _zobristNumbers[i][j] = _rand.Next(0, int.MaxValue);
+        //    }
+        //    _height = height;
+        //}
+
+        public static ZobristHash Instance
         {
-            _rand = new Random(SEED);
-            _zobristNumbers = new int[height * width][];
-            for (int i = 0; i < _zobristNumbers.Length; i++)
+            get
             {
-                _zobristNumbers[i] = new int[amountOfPieces];
-                for (int j = 0; j < _zobristNumbers[i].Length; j++)
-                    _zobristNumbers[i][j] = _rand.Next(0, int.MaxValue);
+                if (_instance != null) 
+                    return _instance;
+                else
+                {
+                    lock (padlock) //Only take a lock to create a new instance if non has been created
+                    {
+                        if (_instance == null)
+                        {
+                            int seed = Guid.NewGuid().GetHashCode();
+                            _instance = new ZobristHash(11, 11, 4, seed);
+                        }
+                    }
+                    return _instance;
+                }
             }
-            _height = height;
         }
 
-        public ZobristHash(int height, int width, int amountOfPieces, int seed)
+        private ZobristHash(int height, int width, int amountOfPieces, int seed)
         {
             _rand = new Random(seed);
             _zobristNumbers = new int[height * width][];

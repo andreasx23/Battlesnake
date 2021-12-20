@@ -45,10 +45,8 @@ namespace Battlesnake.Algorithm
         private bool IsTimeoutThresholdReached => _watch.Elapsed >= TimeSpan.FromMilliseconds(_game.Game.Timeout - 75);
         private readonly State _state;
 
-        private bool _allowTT = false;
-        public Algo(GameStatusDTO game, Direction dir, Stopwatch watch, bool allowTT = false)
+        public Algo(GameStatusDTO game, Direction dir, Stopwatch watch)
         {
-            _allowTT = allowTT;
             IS_LOCAL = false;
             _rand = new();
             _watch = watch;
@@ -56,7 +54,7 @@ namespace Battlesnake.Algorithm
             _game = game;
             _dir = dir;
             _grid = GenerateGrid();
-            _state = new State(_grid, allowTT);
+            _state = new State(_grid);
         }
 
         public Algo(GameStatusDTO game, GameObject[][] grid)
@@ -241,17 +239,17 @@ namespace Battlesnake.Algorithm
                 (0, 1), //Right
                 (-1, 0) //Up
             };
-            //if (_allowTT && _transportationTable.TryGetValue(state.Key, out (Direction move, int moveIndex, int depth, double lowerBound, double upperBound) value))
-            //{
-            //    if (value.depth >= depth)
-            //    {
-            //        if (value.lowerBound >= beta) return (value.lowerBound, value.move);
-            //        if (value.upperBound <= alpha) return (value.upperBound, value.move);
-            //    }
-            //    (int x, int y) temp = moves[0];
-            //    moves[0] = moves[value.moveIndex];
-            //    moves[value.moveIndex] = temp;
-            //}
+            if (_transportationTable.TryGetValue(state.Key, out (Direction move, int moveIndex, int depth, double lowerBound, double upperBound) value))
+            {
+                if (value.depth >= depth)
+                {
+                    if (value.lowerBound >= beta) return (value.lowerBound, value.move);
+                    if (value.upperBound <= alpha) return (value.upperBound, value.move);
+                }
+                (int x, int y) temp = moves[0];
+                moves[0] = moves[value.moveIndex];
+                moves[value.moveIndex] = temp;
+            }
 
             if (depth == 0)
             {
@@ -284,8 +282,6 @@ namespace Battlesnake.Algorithm
                 int dx = x + currentSnake.Head.X, dy = y + currentSnake.Head.Y;
                 if (IsInBounds(dx, dy))
                 {
-                    var prevKey = state.Key;
-                    var clone = state.DeepClone();
                     //Change state of the game
                     Point tail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
                     Direction move = GetMove(x, y);
@@ -318,13 +314,6 @@ namespace Battlesnake.Algorithm
                         //Revert changes made doing previous state
                         currentSnake.Health = currentHp;
                         currentSnake.Length = currentLength;
-
-                        if (_allowTT)
-                        {
-                            state.UpdateKeyFromGrid();
-                            Debug.Assert(state.IsGridSame(clone.Grid));
-                            Debug.Assert(prevKey == state.Key);
-                        }
                     }
 
 
@@ -352,7 +341,7 @@ namespace Battlesnake.Algorithm
                 }
             }
 
-            if (_allowTT && !_transportationTable.ContainsKey(state.Key))
+            if (!_transportationTable.ContainsKey(state.Key))
             {
                 double g = bestMoveScore, lowerBound = double.MinValue, upperbound = double.MaxValue;
                 if (g <= alpha) upperbound = g;

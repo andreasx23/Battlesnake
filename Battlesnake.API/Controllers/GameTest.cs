@@ -55,7 +55,7 @@ namespace Battlesnake.API.Controllers
             if (!_map.ContainsKey(id)) _map.Add(id, Direction.LEFT);
 
             Direction currentDir = _map[id];
-            Algo algo = new(game, currentDir, watch, true);
+            Algo algo = new(game, currentDir, watch);
             Direction newDir = algo.CalculateNextMove(game.You, true);
             _map[id] = newDir;
 
