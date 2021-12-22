@@ -26,16 +26,20 @@ namespace Battlesnake.Algorithm
         //FLOODFILL
         public const double MY_FLOODFILL_VALUE = 1d;
         public const double OTHER_FLOODFILL_VALUE = 0.5d;
-        public const double FLOODFILL_MAX = 100d;
-        public const double FLOODFILL_MIN = 25d;
+        public const double MAX_FLOODFILL_SCORE = 100d;
+        public const double MIN_FLOODFILL_SCORE = 25d;
         public const double SAFE_CAVERN_SIZE = 1.8d;
 
         //VORONOI
-        public const double VORONOI_VALUE = 1d;
-        public const double VORONOI_VALUE_NEW = 0.61d;
+        //public const double VORONOI_VALUE = 0.61d;
+        public const double VORONOI_VALUE = 0.60983d;
 
         //EDGE
         public const double EDGE_VALUE_INNER = 25d;
         public const double EDGE_VALUE_OUTER = 12.5d;
+
+        //CENTER
+        public const double CENTER_VALUE_INNER = 35d;
+        public const double CENTER_VALUE_OUTER = 17.5d;
     }
 }

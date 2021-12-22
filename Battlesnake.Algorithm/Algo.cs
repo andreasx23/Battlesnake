@@ -316,7 +316,6 @@ namespace Battlesnake.Algorithm
                         currentSnake.Length = currentLength;
                     }
 
-
                     if (isMaximizingPlayer)
                     {
                         if (eval.score > bestMoveScore)
@@ -457,7 +456,7 @@ namespace Battlesnake.Algorithm
             int maxDistance = h + w;
             List<Point> availableFoods = GetFoodFromGrid(state.Grid);
 
-            //Aggresion
+            //----- Aggresion -----
             double aggresionScore = 0d;
             Point otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y };
             if (myLength >= otherLength + 2)
@@ -574,7 +573,8 @@ namespace Battlesnake.Algorithm
                 if (!IsInBounds(otherSnakeMove.X, otherSnakeMove.Y)) //Not a valid move
                     otherSnakeMove = RandomSafeMove(state.Grid, other);
 
-                int distanceToOtherSnake = Math.Abs(maxDistance - Util.ManhattenDistance(myHead.X, myHead.Y, otherSnakeMove.X, otherSnakeMove.Y));
+                int manhattenDistanceToOtherSnake = Util.ManhattenDistance(myHead.X, myHead.Y, otherSnakeMove.X, otherSnakeMove.Y);
+                int distanceToOtherSnake = Math.Abs(maxDistance - manhattenDistanceToOtherSnake);
                 aggresionScore = distanceToOtherSnake * HeuristicConstants.AGGRESSION_VALUE;
             }
             else
@@ -642,14 +642,15 @@ namespace Battlesnake.Algorithm
                         if (!IsInBounds(otherSnakeMove.X, otherSnakeMove.Y)) //Not a valid move
                             otherSnakeMove = RandomSafeMove(state.Grid, other);
 
-                        int distanceToOtherSnake = Math.Abs(maxDistance - Util.ManhattenDistance(myHead.X, myHead.Y, otherSnakeMove.X, otherSnakeMove.Y));
+                        int manhattenDistanceToOtherSnake = Util.ManhattenDistance(myHead.X, myHead.Y, otherSnakeMove.X, otherSnakeMove.Y);
+                        int distanceToOtherSnake = Math.Abs(maxDistance - manhattenDistanceToOtherSnake);
                         aggresionScore = distanceToOtherSnake * HeuristicConstants.AGGRESSION_VALUE;
                     }
                 }
             }
             score += aggresionScore;
 
-            //Is game over
+            //----- Is game over -----
             (double score, bool isGameOver) evaluateIfGameIsOver = EvaluateIfGameIsOver(me, other, remainingDepth);
             if (evaluateIfGameIsOver.isGameOver)
             {
@@ -657,14 +658,45 @@ namespace Battlesnake.Algorithm
                 return score;
             }
 
-            //Voronoi
-            (int score, int depth) newVoronoiTest = VoronoiAlgorithm.VoronoiHeuristicNew(state.Grid, me, other);
-            score += newVoronoiTest.score * HeuristicConstants.VORONOI_VALUE_NEW;
+            //----- Voronoi -----
+            (int score, int depth) voronoi = VoronoiAlgorithm.VoronoiHeuristicNew(state.Grid, me, other);
+            score += voronoi.score * HeuristicConstants.VORONOI_VALUE;
 
-            //Food
+            //----- Food -----
+            double myFoodScore = 0d;
+            //if (me.Health <= 30)// || myLength < otherLength + 2) //I am hungry or they are 2 sizes larger than me
+            //{
+            //    if (myFoodCount > 0)
+            //        myFoodScore = HeuristicConstants.MY_FOOD_VALUE * myFoodCount;
+            //    else
+            //    {
+            //        if (availableFoods.Count > 0)
+            //        {
+            //            Point myClosestFood = FindClosestFood(availableFoods, myHead);
+            //            int distanceToMyClosestFood = Util.ManhattenDistance(myHead.X, myHead.Y, myClosestFood.X, myClosestFood.Y);
+            //            myFoodScore = Math.Pow((maxDistance - distanceToMyClosestFood) / 4, 2);
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    if (availableFoods.Count > 0)
+            //    {
+            //        int ownedFoodDistance = voronoi.depth;
+            //        if (ownedFoodDistance == -1) //We don't control any food
+            //        {
+            //            Point myClosestFood = FindClosestFood(availableFoods, myHead);
+            //            ownedFoodDistance = Util.ManhattenDistance(myHead.X, myHead.Y, myClosestFood.X, myClosestFood.Y);
+            //        }
+            //        if (me.Health < ownedFoodDistance)
+            //            return -10000d;
+            //        double rope = me.Health - ownedFoodDistance;
+            //        myFoodScore = 68.60914d * Math.Atan(rope / 8.51774d);
+            //    }
+            //}
             if (availableFoods.Count > 0)
             {
-                int ownedFoodDistance = newVoronoiTest.depth;
+                int ownedFoodDistance = voronoi.depth;
                 if (ownedFoodDistance == -1) //We don't control any food
                 {
                     Point myClosestFood = FindClosestFood(availableFoods, myHead);
@@ -673,38 +705,20 @@ namespace Battlesnake.Algorithm
                 if (me.Health < ownedFoodDistance)
                     return -10000d;
                 double rope = me.Health - ownedFoodDistance;
-                double foodScoreTest = 68.60914d * Math.Atan(rope / 8.51774d);
-                score += foodScoreTest;
+                myFoodScore = 68.60914d * Math.Atan(rope / 8.51774d);
             }
-
-            //Food
-            //double foodScore = 0d;
-            //if (me.Health <= 40 || myLength < otherLength + 2) //I am hungry or they are 2 sizes larger than me
-            //{
-            //    if (myFoodCount > 0)
-            //        foodScore = HeuristicConstants.MY_FOOD_VALUE * myFoodCount;
-            //    else
-            //    {
-            //        Point myClosestFood = FindClosestFood(availableFoods, myHead);
-            //        if (myClosestFood != null)
-            //        {
-            //            int distanceToMyClosestFood = Util.ManhattenDistance(myHead.X, myHead.Y, myClosestFood.X, myClosestFood.Y);
-            //            foodScore = Math.Pow((maxDistance - distanceToMyClosestFood) / 4, 2);
-            //        }
-            //    }
-            //}
-            //score += foodScore;
+            score += myFoodScore;
 
             double theirFoodScore = 0d;
-            if (other.Health <= 40 || otherLength < myLength + 2) //They are hungry or I am two sizes larger
+            if (other.Health <= 30 || otherLength < myLength + 2) //They are hungry or I am two sizes larger
             {
                 if (otherFoodCount > 0)
                     theirFoodScore -= HeuristicConstants.OTHER_FOOD_VALUE * otherFoodCount;
                 else
                 {
-                    Point otherClosestFood = FindClosestFood(availableFoods, otherHead);
-                    if (otherClosestFood != null)
+                    if (availableFoods.Count > 0)
                     {
+                        Point otherClosestFood = FindClosestFood(availableFoods, otherHead);
                         int distanceToTheirClosestFood = Util.ManhattenDistance(otherHead.X, otherHead.Y, otherClosestFood.X, otherClosestFood.Y);
                         theirFoodScore = Math.Pow((maxDistance - distanceToTheirClosestFood) / 4, 2);
                     }
@@ -712,30 +726,52 @@ namespace Battlesnake.Algorithm
             }
             score += theirFoodScore;
 
-            //Flood fill
+            //----- Flood fill -----
             double myFloodFillScore = CalculateFloodfillScore(state.Grid, me) * HeuristicConstants.MY_FLOODFILL_VALUE;
             double otherFloodFillScore = -1d * CalculateFloodfillScore(state.Grid, other) * HeuristicConstants.OTHER_FLOODFILL_VALUE;
             double floodFillScore = myFloodFillScore + otherFloodFillScore;
             score += floodFillScore;
 
-            //Edge
+            //----- Edge -----
             double edgeScore = 0d;
-            double outerBound = HeuristicConstants.EDGE_VALUE_INNER;
-            double secondOuterBound = HeuristicConstants.EDGE_VALUE_OUTER;
+            double outerBound = HeuristicConstants.EDGE_VALUE_INNER, secondOuterBound = HeuristicConstants.EDGE_VALUE_OUTER;
             //Me -- Bad for being close to the edge
             if (IsOnAnyEdge(myHead))
                 edgeScore -= outerBound / 2;
-            else if (myHead.X == 1 || myHead.X == h - 2 || myHead.Y == 1 || myHead.Y == w - 2)
+            else if (SecondLineFromEdge(h, w, myHead))
                 edgeScore -= secondOuterBound / 2;
+
             //Other -- Good for me if other is close to the edge
             if (IsOnAnyEdge(otherHead))
                 edgeScore += outerBound / 2;
-            else if (otherHead.X == 1 || otherHead.X == h - 2 || otherHead.Y == 1 || otherHead.Y == w - 2)
+            else if (SecondLineFromEdge(h, w, otherHead))
                 edgeScore += secondOuterBound / 2;
             score += edgeScore;
 
+            //----- Center -----
+            double centerScore = 0d;
+            //Good for me if I'm close to center
+            if (InnerCenter(myHead)) //Inner center
+                centerScore += HeuristicConstants.CENTER_VALUE_INNER / 2;
+            else if (OuterCenter(myHead))    //Right center
+                centerScore += HeuristicConstants.CENTER_VALUE_OUTER / 2;
+
+            //Bad for me if other is close to center
+            if (InnerCenter(otherHead)) //Inner center
+                centerScore -= HeuristicConstants.CENTER_VALUE_INNER / 2;
+            else if (OuterCenter(otherHead))
+                centerScore -= HeuristicConstants.CENTER_VALUE_OUTER / 2;
+            score += centerScore;
+
             return score;
         }
+
+        private bool SecondLineFromEdge(int height, int width, Point myHead) => myHead.X == 1 || myHead.X == height - 2 || myHead.Y == 1 || myHead.Y == width - 2;
+        private bool InnerCenter(Point head) => head.X >= 3 && head.X <= 7 && head.Y >= 3 && head.Y <= 7;
+        private bool OuterCenter(Point head) => head.X == 2 && head.Y >= 2 && head.Y <= 8 ||  //Upper center
+                                                head.X == 8 && head.Y >= 2 && head.Y <= 8 || //Lower center
+                                                head.Y == 2 && head.X >= 2 && head.X <= 8 || //Left center
+                                                head.Y == 8 && head.X >= 2 && head.X <= 8;   //Right center
 
         private (double distance, Point corner) FindClosestCorner(Point head)
         {
@@ -779,7 +815,7 @@ namespace Battlesnake.Algorithm
             int maxLength = (int)round;
             int cavernSize = BestAdjacentFloodFill(grid, me.Head, maxLength);
             if (cavernSize >= maxLength) return 0;
-            double floodFillScore = (HeuristicConstants.FLOODFILL_MAX - HeuristicConstants.FLOODFILL_MIN) / Math.Sqrt(maxLength) * Math.Sqrt(cavernSize) - HeuristicConstants.FLOODFILL_MAX;
+            double floodFillScore = (HeuristicConstants.MAX_FLOODFILL_SCORE - HeuristicConstants.MIN_FLOODFILL_SCORE) / Math.Sqrt(HeuristicConstants.SAFE_CAVERN_SIZE * HeuristicConstants.MAX_SNAKE_LENGTH) * Math.Sqrt(cavernSize) - HeuristicConstants.MAX_FLOODFILL_SCORE;
             return floodFillScore;
         }
 
