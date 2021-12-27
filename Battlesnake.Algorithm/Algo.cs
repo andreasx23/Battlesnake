@@ -67,6 +67,19 @@ namespace Battlesnake.Algorithm
             _grid = grid;
         }
 
+        public GameObject[][] DeepCloneGrid(GameObject[][] grid)
+        {
+            int h = grid.Length, w = grid.First().Length;
+            GameObject[][] clone = new GameObject[h][];
+            for (int i = 0; i < h; i++)
+            {
+                clone[i] = new GameObject[w];
+                for (int j = 0; j < w; j++)
+                    clone[i][j] = grid[i][j];
+            }
+            return clone;
+        }
+
         public Direction CalculateNextMove(Snake me, bool allowMinimax)
         {
             try
@@ -192,6 +205,7 @@ namespace Battlesnake.Algorithm
             State stateClone = _state.DeepClone();
             Snake meClone = me.Clone();
             Snake otherClone = other.Clone();
+            stateClone.Key = ZobristHash.Instance.GenerateKey(meClone, otherClone);
 
             double bestScore = double.MinValue;
             Direction bestMove = Direction.NO_MOVE;
@@ -216,7 +230,9 @@ namespace Battlesnake.Algorithm
 
                 depth += 2;
             }
+
             if (Util.IsDebug) Debug.WriteLine($"Depth searched to: {depth}, a score of: {bestScore} with move: {bestMove}");
+
             return bestMove;
         }
 
@@ -225,7 +241,7 @@ namespace Battlesnake.Algorithm
         private readonly Dictionary<int, (Direction move, int moveIndex, int depth, double lowerBound, double upperBound)> _transportationTable = new();
         private (double score, Direction move) Minimax(State state, Snake me, Snake other, int depth, bool isMaximizingPlayer = true, int myFoodCount = 0, int otherFoodCount = 0, double alpha = double.MinValue, double beta = double.MaxValue)
         {
-            if (IsTimeoutThresholdReached) //Halt new entries in the list
+            if (IsTimeoutThresholdReached)
             {
                 _searchCutOff = true;
                 if (Util.IsDebug) WriteDebugMessage($"THRESHOLD! {_watch.Elapsed}");
@@ -282,6 +298,9 @@ namespace Battlesnake.Algorithm
                 int dx = x + currentSnake.Head.X, dy = y + currentSnake.Head.Y;
                 if (IsInBounds(dx, dy))
                 {
+                    //Store values for updating hash
+                    Point oldHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
+                    Point oldNeck = new() { X = currentSnake.Body[1].X, Y = currentSnake.Body[1].Y };
                     //Change state of the game
                     Point tail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
                     Direction move = GetMove(x, y);
@@ -296,6 +315,9 @@ namespace Battlesnake.Algorithm
                     state.ClearSnakesFromGrid(snakes);
                     state.ShiftBodyForward(currentSnake, x, y, isFoodTile);
                     state.ApplySnakesToGrid(snakes);
+                    //Store values for updating hash
+                    Point newHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
+                    state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, newHead);
                     (double score, Direction move) eval = Minimax(state: state,
                                                                     me: isMaximizingPlayer ? currentSnake : me,
                                                                     other: !isMaximizingPlayer ? currentSnake : other,
@@ -314,6 +336,8 @@ namespace Battlesnake.Algorithm
                         //Revert changes made doing previous state
                         currentSnake.Health = currentHp;
                         currentSnake.Length = currentLength;
+                        //Revert changes made to the key
+                        state.Key = ZobristHash.Instance.UpdateKeyBackwards(state.Key, oldNeck, oldHead, newHead);
                     }
 
                     if (isMaximizingPlayer)
@@ -368,55 +392,6 @@ namespace Battlesnake.Algorithm
                 return Direction.UP;
             else
                 throw new Exception($"Invalid values: ({x}, {y})");
-        }
-
-        private void ClearSnakesFromGrid(GameObject[][] grid, List<Snake> snakes)
-        {
-            //Clear snakes from board
-            for (int i = 0; i < snakes.Count; i++)
-            {
-                Snake snake = snakes[i];
-                for (int j = 0; j < snake.Body.Count; j++)
-                {
-                    Point body = snake.Body[j];
-                    grid[body.X][body.Y] = GameObject.FLOOR;
-                }
-            }
-        }
-
-        private void ApplySnakesToGrid(GameObject[][] grid, List<Snake> snakes)
-        {
-            //Add snakes to board
-            for (int i = 0; i < snakes.Count; i++)
-            {
-                Snake snake = snakes[i];
-                for (int j = 0; j < snake.Body.Count; j++)
-                {
-                    Point body = snake.Body[j];
-                    grid[body.X][body.Y] = GameObject.BODY;
-                }
-                grid[snake.Head.X][snake.Head.Y] = GameObject.HEAD;
-            }
-        }
-
-        private void ShiftBodyForward(GameObject[][] grid, Snake snake, int x, int y, bool isFoodTile)
-        {
-            //Move head + body of current snake forwards
-            Point newHead = new() { X = snake.Body[0].X + x, Y = snake.Body[0].Y + y };
-            snake.Body.Insert(0, new() { X = newHead.X, Y = newHead.Y });
-            snake.Head = new() { X = newHead.X, Y = newHead.Y };
-            if (!isFoodTile) snake.Body.RemoveAt(snake.Body.Count - 1);
-        }
-
-        private void ShiftBodyBackwards(GameObject[][] grid, GameObject lastTile, Snake snake, Point tail, bool isFoodTile)
-        {
-            grid[snake.Head.X][snake.Head.Y] = lastTile; //Update correct tile from previous move
-            //Move head + body of current snake backwards
-            snake.Body.RemoveAt(0);
-            Point newHead = new() { X = snake.Body[0].X, Y = snake.Body[0].Y };
-            snake.Head = new() { X = newHead.X, Y = newHead.Y };
-            if (isFoodTile) snake.Body.RemoveAt(snake.Body.Count - 1);
-            snake.Body.Add(new() { X = tail.X, Y = tail.Y });
         }
 
         private List<Point> GetFoodFromGrid(GameObject[][] grid)

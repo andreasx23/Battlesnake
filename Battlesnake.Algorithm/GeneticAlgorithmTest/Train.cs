@@ -1,5 +1,4 @@
-﻿//using AForge.Genetic;
-//using Battlesnake.AI;
+﻿//using Battlesnake.AI;
 //using Battlesnake.DTOModel;
 //using Battlesnake.Enum;
 //using Battlesnake.Model;
@@ -10,18 +9,57 @@
 //using System.Threading;
 //using System.Threading.Tasks;
 
-//namespace Battlesnake.Train
+//namespace Battlesnake.Algorithm.GeneticAlgorithmTest
 //{
-//    public class Training
+//    public class Train
 //    {
+//        /* Algo CONTRUCTOR!
+//         * 
+//         * public double FUTURE_UNCERTAINTY_FACOTR { get; set; } = 0.87d;
+//        public double AGGRESSION_VALUE { get; set; } = 7.5d;
+//        public double MY_FOOD_VALUE { get; set; } = 50d;
+//        public double OTHER_FOOD_VALUE { get; set; } = 25d;
+//        public double MY_FLOODFILL_VALUE { get; set; } = 1d;
+//        public double OTHER_FLOODFILL_VALUE { get; set; } = 0.5d;
+//        public double VORONOI_VALUE { get; set; } = 0.60983d;
+//        public double EDGE_VALUE_INNER { get; set; } = 25d;
+//        public double EDGE_VALUE_OUTER { get; set; } = 12.5d;
+//        public double CENTER_VALUE_INNER { get; set; } = 35d;
+//        public double CENTER_VALUE_OUTER { get; set; } = 17.5d;
+//        public Algo(GameStatusDTO game, GameObject[][] grid, double future, double aggre, double myfoodvalue, double otherfood, double myflood, double otherflood, double voronoi, double edgeinner, double edgeouter, double centerinner, double centerouter)
+//        {
+//            IS_LOCAL = true;
+//            _watch = Stopwatch.StartNew();
+//            _rand = new();
+//            _game = game;
+//            _dir = Direction.LEFT;
+//            var clone = DeepCloneGrid(grid);
+//            _grid = clone;
+//            _state = new State(clone);
+
+//            FUTURE_UNCERTAINTY_FACOTR = future;
+//            AGGRESSION_VALUE = aggre;
+//            MY_FOOD_VALUE = myfoodvalue;
+//            OTHER_FOOD_VALUE = otherfood;
+//            MY_FLOODFILL_VALUE = myflood;
+//            OTHER_FLOODFILL_VALUE = otherflood;
+//            VORONOI_VALUE = voronoi;
+//            EDGE_VALUE_INNER = edgeinner;
+//            EDGE_VALUE_OUTER = edgeouter;
+//            CENTER_VALUE_INNER = centerinner;
+//            CENTER_VALUE_OUTER = centerouter;
+//        }
+//        */
+
 //        public readonly GameStatusDTO Game;
 //        private readonly Random _rand;
 //        private GameObject[][] _grid;
 //        private GameState _gameState = GameState.PLAYING;
-//        public const int SNAKE_COUNT = 1;
-        
-//        public Training(int height, int width, Snake me)
+//        private string MyId = Guid.NewGuid().ToString();
+
+//        public Train(int height, int width, Snake me)
 //        {
+//            _rand = new Random();
 //            Game = new GameStatusDTO
 //            {
 //                Board = new Board()
@@ -46,26 +84,8 @@
 //                },
 //                Turn = 0
 //            };
-            
-//            Snake clone = GenerateSnake();
-//            clone.AGGRESSION_VALUE = me.AGGRESSION_VALUE;
-//            clone.CENTER_VALUE_INNER = me.CENTER_VALUE_INNER;
-//            clone.CENTER_VALUE_OUTER = me.CENTER_VALUE_OUTER;
-//            clone.EDGE_VALUE_INNER = me.EDGE_VALUE_INNER;
-//            clone.EDGE_VALUE_OUTER = me.EDGE_VALUE_OUTER;
-//            clone.FUTURE_UNCERTAINTY_FACOTR = me.FUTURE_UNCERTAINTY_FACOTR;
-//            clone.MY_FLOODFILL_VALUE = me.MY_FLOODFILL_VALUE;
-//            clone.MY_FOOD_VALUE = me.MY_FOOD_VALUE;
-//            clone.OTHER_FLOODFILL_VALUE = me.OTHER_FLOODFILL_VALUE;
-//            clone.OTHER_FOOD_VALUE = me.OTHER_FOOD_VALUE;
-//            clone.VORONOI_VALUE = me.VORONOI_VALUE;
-//            clone.Wins = me.Wins;
 
-//            Game.Board.Snakes.Add(clone.Clone());
-//            Game.You = clone.Clone();
-
-//            _rand = new Random();
-//            InitalizeGame();
+//            InitalizeGame(me);
 //        }
 
 //        public bool Play()
@@ -75,8 +95,12 @@
 //                if (IsGameOver())
 //                {
 //                    _gameState = GameState.DONE;
-//                    if (Game.You.IsAlive) return true;
-//                    break;
+//                    Snake me = Game.Board.Snakes.First(s => s.Id == MyId);
+//                    Console.WriteLine("Total turns of this game: " + Game.Turn + " Did you win: " + me.IsAlive);
+//                    if (me.IsAlive)
+//                        return true;
+//                    else
+//                        return false;
 //                }
 
 //                AIMove();
@@ -86,12 +110,27 @@
 //                Turn();
 
 //                if (_gameState == GameState.REPLAY)
-//                {
 //                    Print();
-//                }
 //            }
 
 //            return false;
+//        }
+
+//        private void AIMove()
+//        {
+//            foreach (var snake in Game.Board.Snakes.Where(s => s.IsAlive))
+//            {
+//                Game.You = snake.Clone();
+//                Algo alg = new(Game, _grid, snake.FUTURE_UNCERTAINTY_FACOTR, snake.AGGRESSION_VALUE, snake.MY_FOOD_VALUE, snake.OTHER_FOOD_VALUE, snake.MY_FLOODFILL_VALUE, snake.OTHER_FLOODFILL_VALUE, snake.VORONOI_VALUE, snake.EDGE_VALUE_INNER, snake.EDGE_VALUE_OUTER, snake.CENTER_VALUE_INNER, snake.CENTER_VALUE_OUTER);
+
+//                Direction move = Direction.NO_MOVE;
+//                if (snake.Id == MyId)
+//                    move = alg.CalculateNextMove(snake, true);
+//                else
+//                    move = alg.CalculateNextMove(snake, false);
+
+//                snake.Direction = move;
+//            }
 //        }
 
 //        private bool IsInBounds(int x, int y)
@@ -101,13 +140,12 @@
 
 //        private bool IsGameOver()
 //        {
-//            foreach (var snake in Game.Board.Snakes.Where(s => s.IsAlive && s.Health <= 0 || !IsInBounds(s.Head.X, s.Head.Y)))
+//            foreach (var snake in Game.Board.Snakes.Where(s => s.IsAlive && s.Health <= 0 || s.IsAlive && !IsInBounds(s.Head.X, s.Head.Y)))
 //            {
 //                snake.IsAlive = false;
 //                ClearFromGrid(snake);
 //            }
-
-//            return !Game.Board.Snakes.Any(s => s.IsAlive);
+//            return Game.Board.Snakes.Count(s => s.IsAlive) != 2;
 //        }
 
 //        private void Move()
@@ -131,27 +169,6 @@
 //                        break;
 //                    default:
 //                        break;
-//                }
-
-//                if (Game.Turn < 3)
-//                {
-//                    if (snake.Length == 1)
-//                    {
-//                        snake.Body.Add(new Point()
-//                        {
-//                            X = prevX,
-//                            Y = prevY
-//                        });
-//                    }
-//                    else
-//                    {
-//                        snake.Body.Add(new Point()
-//                        {
-//                            X = snake.Body.Last().X,
-//                            Y = snake.Body.Last().Y
-//                        });
-//                    }
-//                    snake.Length++;
 //                }
 
 //                for (int i = 0; i < snake.Body.Count; i++)
@@ -183,7 +200,7 @@
 //                        ClearFromGrid(me);
 //                        break;
 //                    }
-//                    else if (other.Body.Any(b => other.IsAlive && b.X == me.Head.X && b.Y == me.Head.Y)) //Self and body collision
+//                    else if (other.Body.Skip(1).Any(b => other.IsAlive && b.X == me.Head.X && b.Y == me.Head.Y)) //Skip 1 to skip head -- Self and body collision
 //                    {
 //                        me.IsAlive = false;
 //                        ClearFromGrid(me);
@@ -257,21 +274,30 @@
 //            Thread.Sleep(Constants.FPS);
 //        }
 
-//        private void InitalizeGame()
+//        private void InitalizeGame(Snake me)
 //        {
 //            InitializeGrid();
 
+//            Snake clone = GenerateSnake();
+//            clone.AGGRESSION_VALUE = me.AGGRESSION_VALUE;
+//            clone.CENTER_VALUE_INNER = me.CENTER_VALUE_INNER;
+//            clone.CENTER_VALUE_OUTER = me.CENTER_VALUE_OUTER;
+//            clone.EDGE_VALUE_INNER = me.EDGE_VALUE_INNER;
+//            clone.EDGE_VALUE_OUTER = me.EDGE_VALUE_OUTER;
+//            clone.FUTURE_UNCERTAINTY_FACOTR = me.FUTURE_UNCERTAINTY_FACOTR;
+//            clone.MY_FLOODFILL_VALUE = me.MY_FLOODFILL_VALUE;
+//            clone.MY_FOOD_VALUE = me.MY_FOOD_VALUE;
+//            clone.OTHER_FLOODFILL_VALUE = me.OTHER_FLOODFILL_VALUE;
+//            clone.OTHER_FOOD_VALUE = me.OTHER_FOOD_VALUE;
+//            clone.VORONOI_VALUE = me.VORONOI_VALUE;
+//            clone.Wins = me.Wins;
+//            clone.Id = MyId;
+//            Game.Board.Snakes.Add(clone);
+//            _grid[clone.Head.X][clone.Head.Y] = GameObject.HEAD;
 
-//            Game.Board.Snakes.Add(GenerateSnake());
-
-//            for (int i = 0; i < _grid.Length; i++)
-//            {
-//                for (int j = 0; j < _grid[i].Length; j++)
-//                {
-//                    if (Game.Board.Snakes.Any(snake => i == snake.Head.X && j == snake.Head.Y))
-//                        _grid[i][j] = GameObject.HEAD;
-//                }
-//            }
+//            Snake other = GenerateSnake();
+//            Game.Board.Snakes.Add(other);
+//            _grid[other.Head.X][other.Head.Y] = GameObject.HEAD;
 
 //            GenerateFood();
 //        }
@@ -307,25 +333,37 @@
 
 //        private Snake GenerateSnake()
 //        {
-//            int x = _rand.Next(Game.Board.Height);
-//            int y = _rand.Next(Game.Board.Width);
-//            while (_grid[x][y] != GameObject.FLOOR)
+//            List<(int x, int y)> startPos = new()
 //            {
-//                x = _rand.Next(Game.Board.Height);
-//                y = _rand.Next(Game.Board.Width);
+//                (1, 1),
+//                (5, 1),
+//                (9, 1),
+//                (1, 5),
+//                (9, 5),
+//                (1, 9),
+//                (5, 9),
+//                (9, 9),
+//            };
+//            (int x, int y) head = startPos[_rand.Next(0, startPos.Count)];
+//            while (_grid[head.x][head.y] != GameObject.FLOOR)
+//            {
+//                head = startPos[_rand.Next(0, startPos.Count)];
 //            }
 //            Snake snake = new()
 //            {
 //                Head = new Point()
 //                {
-//                    X = x,
-//                    Y = y,
+//                    X = head.x,
+//                    Y = head.y,
 //                },
 //                Health = 500,
 //                Id = Guid.NewGuid().ToString(),
 //                Length = 1,
 //                IsAlive = true
 //            };
+//            snake.Body.Add(new Point() { X = head.x, Y = head.y });
+//            snake.Body.Add(new Point() { X = head.x - 1, Y = head.y });
+//            snake.Length = snake.Body.Count;
 //            snake.Direction = (Direction)_rand.Next(0, 4);
 //            return snake;
 //        }

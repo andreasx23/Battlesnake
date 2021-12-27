@@ -31,7 +31,6 @@ namespace Battlesnake.Algorithm
         public const double SAFE_CAVERN_SIZE = 1.8d;
 
         //VORONOI
-        //public const double VORONOI_VALUE = 0.61d;
         public const double VORONOI_VALUE = 0.60983d;
 
         //EDGE

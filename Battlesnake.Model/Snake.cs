@@ -17,7 +17,7 @@ namespace Battlesnake.Model
         public string Id { get; set; }
         public string Name { get; set; }
         public int Health { get; set; }
-        public Point Head { get; set; }
+        public Point Head { get; set; } = new Point() { X = 0, Y = 0 };
         public List<Point> Body { get; set; } = new List<Point>();
         public string Latency { get; set; }
         public int Length { get; set; }
@@ -35,9 +35,38 @@ namespace Battlesnake.Model
         public int Moves { get; set; } = 0;
         [IgnoreDataMember]
         public int SnakesEaten { get; set; } = 0;
-        //[IgnoreDataMember]
-        //public NeuralNetwork Brain { get; set; } = new NeuralNetwork(new BipolarSigmoidFunction(Constants.ALPHA), Constants.INPUTS_COUNT, Constants.NEURONS, Constants.OUTPUT_COUNT);
-
+        //Genetic algorithm testing
+        [IgnoreDataMember]
+        public int Wins { get; set; } = 0;
+        //HEURISTIC
+        [IgnoreDataMember]
+        public double FUTURE_UNCERTAINTY_FACOTR { get; set; } = 0.87d;
+        //AGGRESSION
+        [IgnoreDataMember]
+        public double AGGRESSION_VALUE { get; set; } = 7.5d;
+        //FOOD
+        [IgnoreDataMember]
+        public double MY_FOOD_VALUE { get; set; } = 50d;
+        [IgnoreDataMember]
+        public double OTHER_FOOD_VALUE { get; set; } = 25d;
+        //FLOODFILL
+        [IgnoreDataMember]
+        public double MY_FLOODFILL_VALUE { get; set; } = 1d;
+        [IgnoreDataMember]
+        public double OTHER_FLOODFILL_VALUE { get; set; } = 0.5d;
+        //VORONOI
+        [IgnoreDataMember]
+        public double VORONOI_VALUE { get; set; } = 0.60983d;
+        //EDGE
+        [IgnoreDataMember]
+        public double EDGE_VALUE_INNER { get; set; } = 25d;
+        [IgnoreDataMember]
+        public double EDGE_VALUE_OUTER { get; set; } = 12.5d;
+        //CENTER
+        [IgnoreDataMember]
+        public double CENTER_VALUE_INNER { get; set; } = 35d;
+        [IgnoreDataMember]
+        public double CENTER_VALUE_OUTER { get; set; } = 17.5d;
 
         public Snake Clone()
         {
@@ -58,12 +87,18 @@ namespace Battlesnake.Model
                 Length = Length,
                 Shout = Shout,
                 Squad = Squad,
-                //IsAlive = IsAlive,
-                //Direction = Direction,
-                //Score = Score,
-                //Moves = Moves,
-                //SnakesEaten = SnakesEaten,
-                //Brain = Brain
+                Wins = Wins,
+                FUTURE_UNCERTAINTY_FACOTR = FUTURE_UNCERTAINTY_FACOTR,
+                AGGRESSION_VALUE = AGGRESSION_VALUE,
+                MY_FOOD_VALUE = MY_FOOD_VALUE,
+                OTHER_FOOD_VALUE = OTHER_FOOD_VALUE,
+                MY_FLOODFILL_VALUE = MY_FLOODFILL_VALUE,
+                OTHER_FLOODFILL_VALUE = OTHER_FLOODFILL_VALUE,
+                VORONOI_VALUE = VORONOI_VALUE,
+                EDGE_VALUE_INNER = EDGE_VALUE_INNER,
+                EDGE_VALUE_OUTER = EDGE_VALUE_OUTER,
+                CENTER_VALUE_INNER = CENTER_VALUE_INNER,
+                CENTER_VALUE_OUTER = CENTER_VALUE_OUTER
             };
         }
     }

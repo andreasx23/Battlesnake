@@ -14,20 +14,11 @@ namespace Battlesnake.Algorithm
     {
         private const bool IS_LOCAL = false;
         public GameObject[][] Grid { get; private set; }
-        //public ZobristHash Hash { get; private set; }
-        public int Key { get; private set; } = 0;
+        public int Key { get;  set; } = 0;
 
         public State(GameObject[][] grid)
         {
             Grid = grid;
-            //Hash = new ZobristHash(grid.Length, grid.First().Length, 4);
-            Key = ZobristHash.Instance.ConvertGridToHash(grid);
-        }
-
-        public State(GameObject[][] grid, ZobristHash hash)
-        {
-            Grid = grid;
-            //Hash = hash;
         }
 
         public void ClearSnakesFromGrid(List<Snake> snakes)
@@ -61,27 +52,15 @@ namespace Battlesnake.Algorithm
 
         public void ShiftBodyForward(Snake snake, int x, int y, bool isFoodTile)
         {
-            //Store postions for hash update
-            Point oldHead = new() { X = snake.Head.X, Y = snake.Head.Y };
-            Point oldTail = new() { X = snake.Body.Last().X, Y = snake.Body.Last().Y };
-
             //Move head + body of current snake forwards
             Point newHead = new() { X = snake.Body[0].X + x, Y = snake.Body[0].Y + y };
-            GameObject destinationTile = Grid[newHead.X][newHead.Y];
             snake.Body.Insert(0, new() { X = newHead.X, Y = newHead.Y });
             snake.Head = new() { X = newHead.X, Y = newHead.Y };
             if (!isFoodTile) snake.Body.RemoveAt(snake.Body.Count - 1);
-
-            //Update hash
-            Key = ZobristHash.Instance.UpdateHashForward(Key, oldHead, snake.Head, oldTail, destinationTile);
         }
 
         public void ShiftBodyBackwards(GameObject lastTile, Snake snake, Point tail, bool isFoodTile)
         {
-            //Store postions for hash update
-            Point oldHead = new() { X = snake.Head.X, Y = snake.Head.Y };
-            Point oldTail = new() { X = snake.Body.Last().X, Y = snake.Body.Last().Y };
-
             //Move head + body of current snake backwards
             Grid[snake.Head.X][snake.Head.Y] = lastTile; //Update correct tile from previous move
             snake.Body.RemoveAt(0);
@@ -89,9 +68,6 @@ namespace Battlesnake.Algorithm
             snake.Head = new() { X = newHead.X, Y = newHead.Y };
             if (isFoodTile) snake.Body.RemoveAt(snake.Body.Count - 1);
             snake.Body.Add(new() { X = tail.X, Y = tail.Y });
-
-            //Store previous hash
-            Key = ZobristHash.Instance.UpdateHashBackwards(Key, oldHead, snake.Head, oldTail, tail, lastTile);
         }
 
         public bool IsGridSame(GameObject[][] other)
@@ -109,7 +85,7 @@ namespace Battlesnake.Algorithm
 
         public State ShallowClone()
         {
-            return new State(Grid, ZobristHash.Instance)
+            return new State(Grid)
             {
                 Key = Key
             };
@@ -131,7 +107,7 @@ namespace Battlesnake.Algorithm
         public State DeepClone()
         {
             GameObject[][] clone = DeepCloneGrid();
-            return new State(clone, ZobristHash.Instance)
+            return new State(clone)
             {
                 Key = Key
             };
