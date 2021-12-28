@@ -14,60 +14,70 @@ namespace Battlesnake.Algorithm
     {
         private const bool IS_LOCAL = false;
         public GameObject[][] Grid { get; private set; }
-        public int Key { get;  set; } = 0;
+        public int Key { get; set; } = 0;
 
         public State(GameObject[][] grid)
         {
             Grid = grid;
         }
 
-        public void ClearSnakesFromGrid(List<Snake> snakes)
+        public void UpdateSnakesToGrid(Snake[] snakes)
         {
-            //Clear snakes from board
-            for (int i = 0; i < snakes.Count; i++)
+            for (int i = 0; i < snakes.Length; i++)
             {
                 Snake snake = snakes[i];
-                for (int j = 0; j < snake.Body.Count; j++)
+                int n = snake.Body.Count;
+                if (n >= 4)
                 {
-                    Point body = snake.Body[j];
-                    Grid[body.X][body.Y] = GameObject.FLOOR;
+                    for (int j = 0; j < 2; j++)
+                    {
+                        Point firstBody = snake.Body[j];
+                        Grid[firstBody.X][firstBody.Y] = GameObject.BODY;
+                        Point LastBody = snake.Body[n - 1 - j];
+                        Grid[LastBody.X][LastBody.Y] = GameObject.BODY;
+                    }
                 }
-            }
-        }
-
-        public void ApplySnakesToGrid(List<Snake> snakes)
-        {
-            //Add snakes to board
-            for (int i = 0; i < snakes.Count; i++)
-            {
-                Snake snake = snakes[i];
-                for (int j = 0; j < snake.Body.Count; j++)
+                else
                 {
-                    Point body = snake.Body[j];
-                    Grid[body.X][body.Y] = GameObject.BODY;
+                    for (int j = 0; j < n; j++)
+                    {
+                        Point body = snake.Body[j];
+                        Grid[body.X][body.Y] = GameObject.BODY;
+                    }
                 }
                 Grid[snake.Head.X][snake.Head.Y] = GameObject.HEAD;
             }
         }
 
-        public void ShiftBodyForward(Snake snake, int x, int y, bool isFoodTile)
+        public void MoveSnakeForward(Snake current, int x, int y, bool isFoodTile)
         {
-            //Move head + body of current snake forwards
-            Point newHead = new() { X = snake.Body[0].X + x, Y = snake.Body[0].Y + y };
-            snake.Body.Insert(0, new() { X = newHead.X, Y = newHead.Y });
-            snake.Head = new() { X = newHead.X, Y = newHead.Y };
-            if (!isFoodTile) snake.Body.RemoveAt(snake.Body.Count - 1);
+            Point newHead = new() { X = current.Head.X + x, Y = current.Head.Y + y };            
+            Grid[current.Head.X][current.Head.Y] = GameObject.BODY;
+            current.Body.Insert(0, new() { X = newHead.X, Y = newHead.Y });
+            current.Head = new() { X = newHead.X, Y = newHead.Y };
+            if (!isFoodTile)
+            {
+                Point tail = current.Body.Last();
+                Grid[tail.X][tail.Y] = GameObject.FLOOR;
+                current.Body.RemoveAt(current.Body.Count - 1);
+            }
+            Grid[newHead.X][newHead.Y] = GameObject.HEAD;
         }
 
-        public void ShiftBodyBackwards(GameObject lastTile, Snake snake, Point tail, bool isFoodTile)
+        public void MoveSnakeBackward(Snake current, Point tail, bool isFoodTile, GameObject newHeadTile)
         {
-            //Move head + body of current snake backwards
-            Grid[snake.Head.X][snake.Head.Y] = lastTile; //Update correct tile from previous move
-            snake.Body.RemoveAt(0);
-            Point newHead = new() { X = snake.Body[0].X, Y = snake.Body[0].Y };
-            snake.Head = new() { X = newHead.X, Y = newHead.Y };
-            if (isFoodTile) snake.Body.RemoveAt(snake.Body.Count - 1);
-            snake.Body.Add(new() { X = tail.X, Y = tail.Y });
+            Grid[current.Head.X][current.Head.Y] = newHeadTile;
+            current.Body.RemoveAt(0);
+            current.Head = new() { X = current.Body.First().X, Y = current.Body.First().Y };
+            if (isFoodTile)
+            {
+                Point last = current.Body.Last();
+                Grid[last.X][last.Y] = GameObject.FLOOR;
+                current.Body.RemoveAt(current.Body.Count - 1);
+            }
+            current.Body.Add(new() { X = tail.X, Y = tail.Y });
+            Grid[tail.X][tail.Y] = GameObject.BODY;
+            Grid[current.Head.X][current.Head.Y] = GameObject.HEAD;
         }
 
         public bool IsGridSame(GameObject[][] other)

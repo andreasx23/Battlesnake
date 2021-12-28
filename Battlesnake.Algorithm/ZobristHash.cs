@@ -92,7 +92,7 @@ namespace Battlesnake.Algorithm
             return hash;
         }
 
-        public int UpdateKeyBackwards(int hash, Point myOldNeck, Point myOldHead, Point myNewHead)
+        public int UpdateKeyBackward(int hash, Point myOldNeck, Point myOldHead, Point myNewHead)
         {
             int myOldNeckIndex = (myOldNeck.X * _height) + myOldNeck.X;
             int myOldHeadIndex = (myOldHead.X * _height) + myOldHead.X;
@@ -110,6 +110,44 @@ namespace Battlesnake.Algorithm
             for (int i = 0; i < grid.Length; i++)
                 for (int j = 0; j < grid[i].Length; j++)
                     hash ^= _zobristNumbers[(i * grid.Length) + j][Util.ConvertGameObjectToInt(grid[i][j])];
+            return hash;
+        }
+
+        public int UpdateHashForward(int hash, Point oldHead, Point newHead, Point oldTail, GameObject destinationTile)
+        {
+            int headIndex = (newHead.X * _height) + newHead.Y;
+            hash ^= _zobristNumbers[headIndex][Util.ConvertGameObjectToInt(destinationTile)]; //UNDO DESTINATION TILE
+            hash ^= _zobristNumbers[headIndex][Util.ConvertGameObjectToInt(GameObject.HEAD)]; //ADD HEAD
+
+            headIndex = (oldHead.X * _height) + oldHead.Y;
+            hash ^= _zobristNumbers[headIndex][Util.ConvertGameObjectToInt(GameObject.HEAD)]; //UNDO HEAD
+            hash ^= _zobristNumbers[headIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //ADD BODY
+
+            if (destinationTile != GameObject.FOOD)
+            {
+                int tailIndex = (oldTail.X * _height) + oldTail.Y;
+                hash ^= _zobristNumbers[tailIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //UNDO TAIL
+                hash ^= _zobristNumbers[tailIndex][Util.ConvertGameObjectToInt(GameObject.FLOOR)]; //ADD FLOOR
+            }
+            return hash;
+        }
+
+        public int UpdateHashBackwards(int hash, Point oldHead, Point newHead, Point oldTail, Point tail, GameObject previousTile)
+        {
+            int headIndex = (oldHead.X * _height) + oldHead.Y;
+            hash ^= _zobristNumbers[headIndex][Util.ConvertGameObjectToInt(GameObject.HEAD)]; //UNDO HEAD
+            hash ^= _zobristNumbers[headIndex][Util.ConvertGameObjectToInt(previousTile)]; //ADD PREVIOUS TILE
+
+            headIndex = (newHead.X * _height) + newHead.Y;
+            hash ^= _zobristNumbers[headIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //UNDO BODY
+            hash ^= _zobristNumbers[headIndex][Util.ConvertGameObjectToInt(GameObject.HEAD)]; //ADD HEAD
+
+            if (previousTile == GameObject.FOOD)
+            {
+                int oldTailIndex = (oldTail.X * _height) + oldTail.Y;
+                hash ^= _zobristNumbers[oldTailIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //UNDO TAIL
+                hash ^= _zobristNumbers[oldTailIndex][Util.ConvertGameObjectToInt(GameObject.FLOOR)]; //ADD FLOOR
+            }
             return hash;
         }
     }

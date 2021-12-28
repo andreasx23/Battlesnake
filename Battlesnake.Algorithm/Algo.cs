@@ -67,19 +67,6 @@ namespace Battlesnake.Algorithm
             _grid = grid;
         }
 
-        public GameObject[][] DeepCloneGrid(GameObject[][] grid)
-        {
-            int h = grid.Length, w = grid.First().Length;
-            GameObject[][] clone = new GameObject[h][];
-            for (int i = 0; i < h; i++)
-            {
-                clone[i] = new GameObject[w];
-                for (int j = 0; j < w; j++)
-                    clone[i][j] = grid[i][j];
-            }
-            return clone;
-        }
-
         public Direction CalculateNextMove(Snake me, bool allowMinimax)
         {
             try
@@ -231,10 +218,16 @@ namespace Battlesnake.Algorithm
                 depth += 2;
             }
 
-            if (Util.IsDebug) Debug.WriteLine($"Depth searched to: {depth}, a score of: {bestScore} with move: {bestMove}");
+            if (Util.IsDebug)
+            {
+                WriteDebugMessage($"No hit: {_nohit} + hit: {_hit} = Total: {_nohit + _hit} (Good hit: {_goodHit}) -- Hit procentage: {_hit / (_nohit + _hit) * 100}");
+                Debug.WriteLine($"Depth searched to: {depth}, a score of: {bestScore} with move: {bestMove}");
+            }
 
             return bestMove;
         }
+
+        private double _hit = 0d, _nohit = 0d, _goodHit = 0d;
 
         //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
         //http://people.csail.mit.edu/plaat/mtdf.html#abmem
@@ -257,15 +250,26 @@ namespace Battlesnake.Algorithm
             };
             if (_transportationTable.TryGetValue(state.Key, out (Direction move, int moveIndex, int depth, double lowerBound, double upperBound) value))
             {
+                _hit++;
                 if (value.depth >= depth)
                 {
-                    if (value.lowerBound >= beta) return (value.lowerBound, value.move);
-                    if (value.upperBound <= alpha) return (value.upperBound, value.move);
+                    if (value.lowerBound >= beta)
+                    {
+                        _goodHit++;
+                        return (value.lowerBound, value.move);
+                    }
+                    else if (value.upperBound <= alpha)
+                    {
+                        _goodHit++;
+                        return (value.upperBound, value.move);
+                    }
                 }
                 (int x, int y) temp = moves[0];
                 moves[0] = moves[value.moveIndex];
                 moves[value.moveIndex] = temp;
             }
+            else
+                _nohit++;
 
             if (depth == 0)
             {
@@ -281,7 +285,7 @@ namespace Battlesnake.Algorithm
 
             Direction bestMove = Direction.NO_MOVE;
             int moveIndex = 0;
-            List<Snake> snakes = new() { me, other };
+            Snake[] snakes = new Snake[2] { me, other };
             Snake currentSnake = isMaximizingPlayer ? me : other;
             double bestMoveScore = isMaximizingPlayer ? double.MinValue : double.MaxValue;
             int prevAppleCount = isMaximizingPlayer ? myFoodCount : otherFoodCount;
@@ -304,7 +308,7 @@ namespace Battlesnake.Algorithm
                     //Change state of the game
                     Point tail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
                     Direction move = GetMove(x, y);
-                    GameObject lastTile = state.Grid[dx][dy];
+                    GameObject newHeadTile = state.Grid[dx][dy];
                     int currentHp = currentSnake.Health;
                     int currentLength = currentSnake.Length;
                     bool isFoodTile = IsFoodTile(state.Grid, dx, dy);
@@ -312,12 +316,12 @@ namespace Battlesnake.Algorithm
                     currentSnake.Health = isFoodTile ? HeuristicConstants.MAX_HEALTH : currentHp - _game.Game.Ruleset.Settings.HazardDamagePerTurn;
                     currentSnake.Length = isFoodTile ? currentLength + 1 : currentLength;
                     //Move the snake
-                    state.ClearSnakesFromGrid(snakes);
-                    state.ShiftBodyForward(currentSnake, x, y, isFoodTile);
-                    state.ApplySnakesToGrid(snakes);
+                    state.MoveSnakeForward(currentSnake, x, y, isFoodTile);
+                    state.UpdateSnakesToGrid(snakes);
                     //Store values for updating hash
                     Point newHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
                     state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, newHead);
+
                     (double score, Direction move) eval = Minimax(state: state,
                                                                     me: isMaximizingPlayer ? currentSnake : me,
                                                                     other: !isMaximizingPlayer ? currentSnake : other,
@@ -330,14 +334,13 @@ namespace Battlesnake.Algorithm
                     if (!IsTimeoutThresholdReached) //Only clear if timeout is not reached
                     {
                         //Move the snake back
-                        state.ClearSnakesFromGrid(snakes);
-                        state.ShiftBodyBackwards(lastTile, currentSnake, tail, isFoodTile);
-                        state.ApplySnakesToGrid(snakes);
+                        state.MoveSnakeBackward(currentSnake, tail, isFoodTile, newHeadTile);
+                        state.UpdateSnakesToGrid(snakes);
                         //Revert changes made doing previous state
                         currentSnake.Health = currentHp;
                         currentSnake.Length = currentLength;
                         //Revert changes made to the key
-                        state.Key = ZobristHash.Instance.UpdateKeyBackwards(state.Key, oldNeck, oldHead, newHead);
+                        state.Key = ZobristHash.Instance.UpdateKeyBackward(state.Key, oldNeck, oldHead, newHead);
                     }
 
                     if (isMaximizingPlayer)
@@ -890,7 +893,7 @@ namespace Battlesnake.Algorithm
             }
 
             double score;
-            if (mySnakeDead)
+            if (mySnakeDead || mySnakeMaybeDead && otherSnakeMaybeDead)
                 score = AdjustForFutureUncetainty(-1000, remainingDepth);
             else if (mySnakeMaybeDead)
                 score = AdjustForFutureUncetainty(-500, remainingDepth);
@@ -903,6 +906,9 @@ namespace Battlesnake.Algorithm
 
             bool isGameOver = false;
             if (mySnakeDead || otherSnakeDead || mySnakeMaybeDead || otherSnakeMaybeDead) isGameOver = true;
+
+            //Node depth score -- https://levelup.gitconnected.com/improving-minimax-performance-fc82bc337dfd section 9
+            score += remainingDepth;
 
             return (score, isGameOver);
         }
@@ -1221,7 +1227,6 @@ namespace Battlesnake.Algorithm
             }
             else
             {
-                Debug.WriteLine("");
                 for (int i = 0; i < grid.Length + 2; i++)
                     Debug.Write("#");
 
