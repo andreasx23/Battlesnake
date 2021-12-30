@@ -71,12 +71,14 @@ namespace Battlesnake.Algorithm
         public int GenerateKey(Snake me, Snake other)
         {
             int hash = 0;
-            int myHeadIndex = (me.Head.X * _height) + me.Head.X, myNeckIndex = (me.Body[1].X * _height) + me.Body[1].X;
+            int myHeadIndex = (me.Head.X * _height) + me.Head.X, myNeckIndex = (me.Body[1].X * _height) + me.Body[1].X, myTailIndex = (me.Body.Last().X * _height) + me.Body.Last().X;
             hash ^= _zobristNumbers[myHeadIndex][Util.ConvertGameObjectToInt(GameObject.HEAD)]; //ADD HEAD
             hash ^= _zobristNumbers[myNeckIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //ADD BODY
-            int otherHeadIndex = (other.Head.X * _height) + other.Head.X, otherNeckIndex = (other.Body[1].X * _height) + other.Body[1].X;
+            //hash ^= _zobristNumbers[myTailIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //ADD BODY
+            int otherHeadIndex = (other.Head.X * _height) + other.Head.X, otherNeckIndex = (other.Body[1].X * _height) + other.Body[1].X, otherTailIndex = (other.Body.Last().X * _height) + other.Body.Last().X;
             hash ^= _zobristNumbers[otherHeadIndex][Util.ConvertGameObjectToInt(GameObject.HEAD)]; //ADD HEAD
             hash ^= _zobristNumbers[otherNeckIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //ADD BODY
+            //hash ^= _zobristNumbers[otherTailIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //ADD BODY
             return hash;
         }
 

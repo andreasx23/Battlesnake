@@ -41,6 +41,9 @@ namespace Battlesnake.Algorithm
             for (int i = 0; i < neighbours.Count; i++)
             {
                 (int x, int y) = neighbours[i];
+                if (state[x, y] != 0) 
+                    continue;
+                isVisisted[x, y] = true;
                 dists[x, y] = 1;
                 queue.Enqueue((x, y));
             }
@@ -151,7 +154,7 @@ namespace Battlesnake.Algorithm
             return (counts[myId], foodDepth);
         }
 
-        public static (int score, int depth) VoronoiHeuristicNew(GameObject[][] grid, Snake me, Snake other)
+        public static (int score, int depth) VoronoiStateHeuristic(GameObject[][] grid, Snake me, Snake other)
         {
             _grid = grid;
             return GameStateVoronoi(me, other);
@@ -210,8 +213,8 @@ namespace Battlesnake.Algorithm
             isVisited[row, column] = true;
             depths[row, column] = depth;
             lows[row, column] = depth;
-            int children = 0;
 
+            int children = 0;
             List<(int x, int y)> neighbours = Neighbours(row, column);
             for (int i = 0; i < neighbours.Count; i++)
             {

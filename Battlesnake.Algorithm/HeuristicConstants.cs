@@ -20,8 +20,10 @@ namespace Battlesnake.Algorithm
         public const double AGGRESSION_VALUE = 7.5d;
 
         //FOOD
-        public const double MY_FOOD_VALUE = 50d;
+        //public const double MY_FOOD_VALUE = 50d;
+        public const double MY_FOOD_VALUE = 68.60914d;
         public const double OTHER_FOOD_VALUE = 25d;
+        public const double ATAN_VALUE = 8.51774d;
 
         //FLOODFILL
         public const double MY_FLOODFILL_VALUE = 1d;
