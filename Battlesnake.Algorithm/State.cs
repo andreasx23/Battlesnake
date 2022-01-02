@@ -19,6 +19,7 @@ namespace Battlesnake.Algorithm
         public State(GameObject[][] grid)
         {
             Grid = grid;
+            Key = ZobristHash.Instance.ConvertGridToHash(grid);
         }
 
         public void UpdateSnakesToGrid(Snake[] snakes)
@@ -64,9 +65,9 @@ namespace Battlesnake.Algorithm
             Grid[newHead.X][newHead.Y] = GameObject.HEAD;
         }
 
-        public void MoveSnakeBackward(Snake current, Point tail, bool isFoodTile, GameObject newHeadTile)
+        public void MoveSnakeBackward(Snake current, Point tail, bool isFoodTile, GameObject destinationTile)
         {
-            Grid[current.Head.X][current.Head.Y] = newHeadTile;
+            Grid[current.Head.X][current.Head.Y] = destinationTile;
             current.Body.RemoveAt(0);
             current.Head = new() { X = current.Body.First().X, Y = current.Body.First().Y };
             if (isFoodTile)

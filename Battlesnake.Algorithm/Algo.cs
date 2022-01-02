@@ -54,6 +54,7 @@ namespace Battlesnake.Algorithm
             _game = game;
             _dir = dir;
             _grid = GenerateGrid();
+            ZobristHash.InitZobirstHash(game.Board.Height, game.Board.Width);
             _state = new State(_grid);
         }
 
@@ -192,7 +193,6 @@ namespace Battlesnake.Algorithm
             State stateClone = _state.DeepClone();
             Snake meClone = me.Clone();
             Snake otherClone = other.Clone();
-            stateClone.Key = ZobristHash.Instance.GenerateKey(meClone, otherClone);
 
             double bestScore = double.MinValue;
             Direction bestMove = Direction.NO_MOVE;
@@ -220,7 +220,7 @@ namespace Battlesnake.Algorithm
 
             if (Util.IsDebug)
             {
-                WriteDebugMessage($"No hit: {_nohit} + hit: {_hit} = Total: {_nohit + _hit} (Good hit: {_goodHit}) -- Hit procentage: {_hit / (_nohit + _hit) * 100}");
+                WriteDebugMessage($"No hit: {_nohit} + hit: {_hit} + good hit: {_goodHit} = Total: {_nohit + _hit + _goodHit} -- Hit procentage: {_hit / (_nohit + _hit + _goodHit) * 100} Good hit procentage: {_goodHit / (_nohit + _hit + _goodHit) * 100} Total hit procentage: {(_hit + _goodHit) / (_nohit + _hit + _goodHit) * 100}");
                 Debug.WriteLine($"Depth searched to: {depth}, a score of: {bestScore} with move: {bestMove}");
             }
 
@@ -250,29 +250,25 @@ namespace Battlesnake.Algorithm
             };
             if (_transportationTable.TryGetValue(state.Key, out (Direction move, int moveIndex, int depth, double lowerBound, double upperBound) value))
             {
-                _hit++;
                 if (value.depth >= depth)
                 {
-                    //Potential bug
-                    //https://play.battlesnake.com/g/cfe8b81e-82a8-416b-a56c-c09b06da2d09/?turn=154
-                    //https://play.battlesnake.com/g/7dc23bca-dd66-480c-9407-c6a01bddf638/?turn=223
-
-                    //if (value.lowerBound >= beta)
-                    //{
-                    //    _goodHit++;
-                    //    return (value.lowerBound, value.move);
-                    //}
-                    //else if (value.upperBound <= alpha)
-                    //{
-                    //    _goodHit++;
-                    //    return (value.upperBound, value.move);
-                    //}
+                    if (value.lowerBound >= beta)
+                    {
+                        if (Util.IsDebug) _goodHit++;
+                        return (value.lowerBound, value.move);
+                    }
+                    else if (value.upperBound <= alpha)
+                    {
+                        if (Util.IsDebug) _goodHit++;
+                        return (value.upperBound, value.move);
+                    }
                 }
+                if (Util.IsDebug) _hit++;
                 (int x, int y) temp = moves[0];
                 moves[0] = moves[value.moveIndex];
                 moves[value.moveIndex] = temp;
             }
-            else
+            else if (Util.IsDebug)
                 _nohit++;
 
             if (depth == 0)
@@ -306,13 +302,15 @@ namespace Battlesnake.Algorithm
                 int dx = x + currentSnake.Head.X, dy = y + currentSnake.Head.Y;
                 if (IsInBounds(dx, dy))
                 {
+                    int key = state.Key;
                     //Store values for updating hash
                     Point oldHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
                     Point oldNeck = new() { X = currentSnake.Body[1].X, Y = currentSnake.Body[1].Y };
+                    Point oldTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
                     //Change state of the game
                     Point tail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
                     Direction move = GetMove(x, y);
-                    GameObject newHeadTile = state.Grid[dx][dy];
+                    GameObject destinationTile = state.Grid[dx][dy];
                     int currentHp = currentSnake.Health;
                     int currentLength = currentSnake.Length;
                     bool isFoodTile = IsFoodTile(state.Grid, dx, dy);
@@ -324,8 +322,9 @@ namespace Battlesnake.Algorithm
                     state.UpdateSnakesToGrid(snakes);
                     //Store values for updating hash
                     Point newHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
-                    state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, newHead);
-
+                    Point newTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
+                    state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
+                    //Execute minimax
                     (double score, Direction move) eval = Minimax(state: state,
                                                                     me: isMaximizingPlayer ? currentSnake : me,
                                                                     other: !isMaximizingPlayer ? currentSnake : other,
@@ -338,13 +337,14 @@ namespace Battlesnake.Algorithm
                     if (!IsTimeoutThresholdReached) //Only clear if timeout is not reached
                     {
                         //Move the snake back
-                        state.MoveSnakeBackward(currentSnake, tail, isFoodTile, newHeadTile);
+                        state.MoveSnakeBackward(currentSnake, tail, isFoodTile, destinationTile);
                         state.UpdateSnakesToGrid(snakes);
                         //Revert changes made doing previous state
                         currentSnake.Health = currentHp;
                         currentSnake.Length = currentLength;
                         //Revert changes made to the key
-                        state.Key = ZobristHash.Instance.UpdateKeyBackward(state.Key, oldNeck, oldHead, newHead);
+                        state.Key = ZobristHash.Instance.UpdateKeyBackward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
+                        Debug.Assert(key == state.Key);
                     }
 
                     if (isMaximizingPlayer)
@@ -1172,7 +1172,7 @@ namespace Battlesnake.Algorithm
             {
                 (int x, int y, int steps) current = queue.Dequeue();
 
-                if (current == DEPTH_MARK) 
+                if (current == DEPTH_MARK)
                 {
                     depth++;
                     queue.Enqueue(DEPTH_MARK);
