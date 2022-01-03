@@ -15,11 +15,22 @@ namespace Battlesnake.Algorithm
         private const bool IS_LOCAL = false;
         public GameObject[][] Grid { get; private set; }
         public int Key { get; set; } = 0;
+        public Snake Me { get; set; }
+        public Snake Other { get; set; }
+        public int MAX_DEPTH { get; set; }
+        //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
+        //http://people.csail.mit.edu/plaat/mtdf.html#abmem
+        public Dictionary<int, (Direction move, int moveIndex, int depth, double lowerBound, double upperBound, bool isGameOver)> TransportationTable { get; } = new();
 
         public State(GameObject[][] grid)
         {
             Grid = grid;
-            Key = ZobristHash.Instance.ConvertGridToHash(grid);
+            //Key = ZobristHash.Instance.ConvertGridToHash(grid);
+        }
+
+        public void GenerateKey()
+        {
+            Key = ZobristHash.Instance.ConvertGridToHash(Grid);
         }
 
         public void UpdateSnakesToGrid(Snake[] snakes)
