@@ -32,7 +32,7 @@ namespace Battlesnake.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Whoami))]
         public IActionResult Get()
         {
-            Whoami whoami = new(head: "scarf", tail: "present", colour: "#1a1a1a", version: "V1");
+            Whoami whoami = new(head: "mask", tail: "virus", colour: "#e580ff", version: "V1");
             return Ok(whoami);
         }
 
