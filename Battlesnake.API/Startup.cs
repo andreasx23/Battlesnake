@@ -3,6 +3,7 @@ using Battlesnake.AI;
 using Battlesnake.Enum;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -57,6 +58,13 @@ namespace Battlesnake.API
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApi v1");
             });
+
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
+            app.UseAuthentication();
 
             app.UseHttpsRedirection();
             app.UseStatusCodePages();

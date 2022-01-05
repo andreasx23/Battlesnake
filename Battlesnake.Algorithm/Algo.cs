@@ -56,7 +56,7 @@ namespace Battlesnake.Algorithm
             _game = game;
             _dir = dir;
             _grid = GenerateGrid();
-            ZobristHash.InitZobirstHash(game.Board.Height, game.Board.Width);
+            ZobristHash.InitZobristHash(game.Board.Height, game.Board.Width);
             _state = new State(_grid);
         }
 
@@ -229,9 +229,14 @@ namespace Battlesnake.Algorithm
                 if (_searchCutOff)
                     break;
 
-                if (Util.IsDebug) Debug.WriteLine(score + " " + move + " " + depth);
+                if (Util.IsDebug) 
+                    Debug.WriteLine(score + " " + move + " " + depth);
+
                 bestScore = score;
                 bestMove = move;
+
+                if (isGameOver)
+                    break;
 
                 depth += 2;
             }
