@@ -22,11 +22,17 @@ namespace Battlesnake.Algorithm
         {
             _rand = new Random(seed);
             _zobristNumbers = new int[height * width][];
+            HashSet<int> numbers = new();
             for (int i = 0; i < _zobristNumbers.Length; i++)
             {
                 _zobristNumbers[i] = new int[amountOfPieces];
                 for (int j = 0; j < _zobristNumbers[i].Length; j++)
-                    _zobristNumbers[i][j] = _rand.Next(0, int.MaxValue);
+                {
+                    int randomNumber = _rand.Next(0, int.MaxValue);
+                    while (!numbers.Add(randomNumber))
+                        randomNumber = _rand.Next(0, int.MaxValue);
+                    _zobristNumbers[i][j] = randomNumber;
+                }
             }
             _height = height;
         }
@@ -42,7 +48,7 @@ namespace Battlesnake.Algorithm
             }
         }
 
-        public static void InitZobirstHash(int height, int width)
+        public static void InitZobristHash(int height, int width)
         {
             if (_instance == null)
             {

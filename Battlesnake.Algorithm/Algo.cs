@@ -54,7 +54,7 @@ namespace Battlesnake.Algorithm
             _game = game;
             _dir = dir;
             _grid = GenerateGrid();
-            ZobristHash.InitZobirstHash(game.Board.Height, game.Board.Width);
+            ZobristHash.InitZobristHash(game.Board.Height, game.Board.Width);
             _state = new State(_grid);
         }
 
@@ -175,7 +175,7 @@ namespace Battlesnake.Algorithm
             State stateClone = _state.DeepClone();
             Snake meClone = me.Clone();
             Snake otherClone = other.Clone();
-            (double score, Direction move) = Minimax(stateClone, meClone, otherClone, MAX_DEPTH);
+            (double score, Direction move, bool isGameOver) = Minimax(stateClone, meClone, otherClone, MAX_DEPTH);
             if (Util.IsDebug) WriteDebugMessage($"Best score from minimax: {score} -- move to perform: {move}");
             return move;
         }
@@ -206,14 +206,19 @@ namespace Battlesnake.Algorithm
                 }
 
                 MAX_DEPTH = depth;
-                (double score, Direction move) = Minimax(stateClone, meClone, otherClone, depth);
+                (double score, Direction move, bool isGameOver) = Minimax(stateClone, meClone, otherClone, depth);
 
                 if (_searchCutOff)
                     break;
 
-                if (Util.IsDebug) Debug.WriteLine(score + " " + move + " " + depth);
+                if (Util.IsDebug) 
+                    Debug.WriteLine(score + " " + move + " " + depth);
+
                 bestScore = score;
                 bestMove = move;
+
+                if (isGameOver)
+                    break;
 
                 depth += 2;
             }
@@ -231,14 +236,14 @@ namespace Battlesnake.Algorithm
 
         //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
         //http://people.csail.mit.edu/plaat/mtdf.html#abmem
-        private readonly Dictionary<int, (Direction move, int moveIndex, int depth, double lowerBound, double upperBound)> _transportationTable = new();
-        private (double score, Direction move) Minimax(State state, Snake me, Snake other, int depth, bool isMaximizingPlayer = true, int myFoodCount = 0, int otherFoodCount = 0, double alpha = double.MinValue, double beta = double.MaxValue)
+        private readonly Dictionary<int, (Direction move, int moveIndex, int depth, double lowerBound, double upperBound, bool isGameOver)> _transportationTable = new();
+        private (double score, Direction move, bool isGameOver) Minimax(State state, Snake me, Snake other, int depth, bool isMaximizingPlayer = true, int myFoodCount = 0, int otherFoodCount = 0, double alpha = double.MinValue, double beta = double.MaxValue)
         {
             if (IsTimeoutThresholdReached)
             {
                 _searchCutOff = true;
                 if (Util.IsDebug) WriteDebugMessage($"THRESHOLD! {_watch.Elapsed}");
-                return (0, Direction.NO_MOVE);
+                return (0, Direction.NO_MOVE, false);
             }
 
             (int x, int y)[] moves = new (int x, int y)[4]
@@ -248,19 +253,19 @@ namespace Battlesnake.Algorithm
                 (0, 1), //Right
                 (-1, 0) //Up
             };
-            if (_transportationTable.TryGetValue(state.Key, out (Direction move, int moveIndex, int depth, double lowerBound, double upperBound) value))
+            if (_transportationTable.TryGetValue(state.Key, out (Direction move, int moveIndex, int depth, double lowerBound, double upperBound, bool isGameOver) value))
             {
                 if (value.depth >= depth)
                 {
                     if (value.lowerBound >= beta)
                     {
                         if (Util.IsDebug) _goodHit++;
-                        return (value.lowerBound, value.move);
+                        return (value.lowerBound, value.move, value.isGameOver);
                     }
                     else if (value.upperBound <= alpha)
                     {
                         if (Util.IsDebug) _goodHit++;
-                        return (value.upperBound, value.move);
+                        return (value.upperBound, value.move, value.isGameOver);
                     }
                 }
                 if (Util.IsDebug) _hit++;
@@ -274,13 +279,13 @@ namespace Battlesnake.Algorithm
             if (depth == 0)
             {
                 double evaluatedState = EvaluateState(state, me, other, depth, myFoodCount, otherFoodCount);
-                return (evaluatedState, Direction.NO_MOVE);
+                return (evaluatedState, Direction.NO_MOVE, false);
             }
 
             if (isMaximizingPlayer) //Only evaluate if game is over when it's my turn because it takes two depths for a turn
             {
                 (double score, bool isGameOver) = EvaluateIfGameIsOver(me, other, depth);
-                if (isGameOver) return (score, Direction.NO_MOVE);
+                if (isGameOver) return (score, Direction.NO_MOVE, true);
             }
 
             Direction bestMove = Direction.NO_MOVE;
@@ -289,13 +294,14 @@ namespace Battlesnake.Algorithm
             Snake currentSnake = isMaximizingPlayer ? me : other;
             double bestMoveScore = isMaximizingPlayer ? double.MinValue : double.MaxValue;
             int prevAppleCount = isMaximizingPlayer ? myFoodCount : otherFoodCount;
+            bool isGG = false;
             for (int i = 0; i < moves.Length; i++) //For loop because it's faster in runtime
             {
                 if (IsTimeoutThresholdReached) //Halt possible new entries
                 {
                     _searchCutOff = true;
                     if (Util.IsDebug) WriteDebugMessage($"THRESHOLD! {_watch.Elapsed}");
-                    return (0, Direction.NO_MOVE);
+                    return (0, Direction.NO_MOVE, false);
                 }
 
                 (int x, int y) = moves[i];
@@ -325,7 +331,7 @@ namespace Battlesnake.Algorithm
                     Point newTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
                     state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
                     //Execute minimax
-                    (double score, Direction move) eval = Minimax(state: state,
+                    (double score, Direction move, bool isGameOver) eval = Minimax(state: state,
                                                                     me: isMaximizingPlayer ? currentSnake : me,
                                                                     other: !isMaximizingPlayer ? currentSnake : other,
                                                                     depth: depth - 1,
@@ -354,6 +360,7 @@ namespace Battlesnake.Algorithm
                             bestMoveScore = eval.score;
                             bestMove = move;
                             moveIndex = i;
+                            isGG = eval.isGameOver;
                         }
                         alpha = Math.Max(alpha, eval.score);
                     }
@@ -364,12 +371,14 @@ namespace Battlesnake.Algorithm
                             bestMoveScore = eval.score;
                             bestMove = move;
                             moveIndex = i;
+                            isGG = eval.isGameOver;
                         }
                         beta = Math.Min(beta, eval.score);
                     }
                     if (beta <= alpha) break;
                 }
             }
+
 
             if (!_transportationTable.ContainsKey(state.Key))
             {
@@ -381,10 +390,10 @@ namespace Battlesnake.Algorithm
                     lowerBound = g;
                 }
                 else if (g >= beta) lowerBound = g;
-                _transportationTable.Add(state.Key, (bestMove, moveIndex, depth, lowerBound, upperbound));
+                _transportationTable.Add(state.Key, (bestMove, moveIndex, depth, lowerBound, upperbound, isGG));
             }
 
-            return (bestMoveScore, bestMove);
+            return (bestMoveScore, bestMove, isGG);
         }
 
         private Direction GetMove(int x, int y)
