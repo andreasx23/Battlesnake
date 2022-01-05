@@ -18,10 +18,7 @@ namespace Battlesnake.Algorithm
         public Snake Me { get; set; }
         public Snake Other { get; set; }
         public int MAX_DEPTH { get; set; }
-        //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
-        //http://people.csail.mit.edu/plaat/mtdf.html#abmem
-        public Dictionary<int, (Direction move, int moveIndex, int depth, double lowerBound, double upperBound, bool isGameOver)> TransportationTable { get; } = new();
-
+                
         public State(GameObject[][] grid)
         {
             Grid = grid;
