@@ -41,7 +41,7 @@ namespace Battlesnake.API
             services.AddControllers(o => { o.OutputFormatters.Clear(); })
                     .AddNewtonsoftJson(o => { o.UseCamelCasing(processDictionaryKeys: true); });
 
-            Dictionary<string, Direction> map = new();
+            Dictionary<(string id, string name), Direction> map = new();
             services.AddSingleton(map);
         }
 

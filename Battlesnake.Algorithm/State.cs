@@ -15,11 +15,19 @@ namespace Battlesnake.Algorithm
         private const bool IS_LOCAL = false;
         public GameObject[][] Grid { get; private set; }
         public int Key { get; set; } = 0;
+        public int MAX_DEPTH { get; set; } = HeuristicConstants.MINIMAX_DEPTH;
 
         public State(GameObject[][] grid)
         {
             Grid = grid;
             Key = ZobristHash.Instance.ConvertGridToHash(grid);
+        }
+
+        private State(GameObject[][] grid, int key, int maxDepth)
+        {
+            Grid = grid;
+            Key = key;
+            MAX_DEPTH = maxDepth;
         }
 
         public void UpdateSnakesToGrid(Snake[] snakes)
@@ -52,7 +60,7 @@ namespace Battlesnake.Algorithm
 
         public void MoveSnakeForward(Snake current, int x, int y, bool isFoodTile)
         {
-            Point newHead = new() { X = current.Head.X + x, Y = current.Head.Y + y };            
+            Point newHead = new() { X = current.Head.X + x, Y = current.Head.Y + y };
             Grid[current.Head.X][current.Head.Y] = GameObject.BODY;
             current.Body.Insert(0, new() { X = newHead.X, Y = newHead.Y });
             current.Head = new() { X = newHead.X, Y = newHead.Y };
@@ -96,10 +104,7 @@ namespace Battlesnake.Algorithm
 
         public State ShallowClone()
         {
-            return new State(Grid)
-            {
-                Key = Key
-            };
+            return new State(Grid, Key, MAX_DEPTH);
         }
 
         public GameObject[][] DeepCloneGrid()
@@ -118,10 +123,7 @@ namespace Battlesnake.Algorithm
         public State DeepClone()
         {
             GameObject[][] clone = DeepCloneGrid();
-            return new State(clone)
-            {
-                Key = Key
-            };
+            return new State(clone, Key, MAX_DEPTH);
         }
 
         public void Print()
