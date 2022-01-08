@@ -107,7 +107,7 @@ namespace Battlesnake.Algorithm
             {
                 if (me.IsAlive)
                 {
-                    me.Direction = _brains[index].CalculateNextMove(me, false);
+                    me.Direction = _brains[index].CalculateNextMove(me);
                     index++;
                 }
             }
