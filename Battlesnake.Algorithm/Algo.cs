@@ -1,4 +1,5 @@
 ﻿using AlgoKit.Collections.Heaps;
+using Battlesnake.Algorithm.Structs;
 using Battlesnake.DTOModel;
 using Battlesnake.Enum;
 using Battlesnake.Model;
@@ -45,6 +46,7 @@ namespace Battlesnake.Algorithm
         private readonly Stopwatch _watch;
         private bool IsTimeoutThresholdReached => _watch.Elapsed >= TimeSpan.FromMilliseconds(_game.Game.Timeout - 75);
         private readonly State _state;
+        private double _hit = 0d, _noHit = 0d, _goodHit = 0d;
 
         public Algo(GameStatusDTO game, Direction dir, Stopwatch watch)
         {
@@ -241,57 +243,50 @@ namespace Battlesnake.Algorithm
         {
             if (Util.IsDebug) Print();
 
-            List<(State state, Snake me, Snake other)> states = new();
-            for (int i = 0; i < 4; i++)
-            {
-                State StateClone = _state.DeepClone();
-                Snake meClone = me.Clone();
-                Snake otherClone = other.Clone();
-                StateClone.MAX_DEPTH = 2 * (i + 1);
-                states.Add((StateClone, meClone, otherClone));
-            }
-
-            double bestScore = double.MinValue;
-            Direction bestMove = Direction.NO_MOVE;
-            int depth = -1;
             double prevHit = _hit;
             double prevNoHit = _noHit;
             double prevGoodHit = _goodHit;
-            while (true)
+            ConcurrentBag<(double score, Direction move, int depth)> scores = new();
+            Parallel.For(0, 4, i =>
             {
-                if (IsTimeoutThresholdReached)
-                    break;
-
-                /*
-                 * https://www.chessprogramming.org/Lazy_SMP
-                 * https://chess.stackexchange.com/questions/35257/chess-engine-using-lazysmp
-                 * 
-                 * https://stackoverflow.com/questions/70303310/why-does-increasing-the-hash-table-size-for-a-chess-engine-also-drastically-inc
-                 */
-                ConcurrentBag<(double score, Direction move, int depth)> bag = new();
-                Parallel.ForEach(states, val =>
+                State StateClone = _state.DeepClone();
+                StateClone.MAX_DEPTH = 2 * (i + 1);
+                Snake meClone = me.Clone();
+                Snake otherClone = other.Clone();
+                while (true)
                 {
-                    (double score, Direction move) = Minimax(val.state, val.me, val.other, val.state.MAX_DEPTH);
-                    if (!_searchCutOff)
-                    {
-                        bag.Add((score, move, val.state.MAX_DEPTH));
-                        val.state.MAX_DEPTH += states.Count * 2;
-                    }
-                });
+                    if (IsTimeoutThresholdReached)
+                        break;
 
-                if (!bag.IsEmpty)
-                {
-                    if (Util.IsDebug)
-                        Debug.WriteLine(string.Join(", ", bag));
+                    /*
+                     * https://www.chessprogramming.org/Lazy_SMP
+                     * https://chess.stackexchange.com/questions/35257/chess-engine-using-lazysmp
+                     * 
+                     * https://stackoverflow.com/questions/70303310/why-does-increasing-the-hash-table-size-for-a-chess-engine-also-drastically-inc
+                     */
+                    (double score, Direction move) = Minimax(StateClone, meClone, otherClone, StateClone.MAX_DEPTH);
 
-                    var order = bag.OrderByDescending(v => v.depth);
-                    bestScore = order.First().score;
-                    bestMove = order.First().move;
-                    depth = order.First().depth;
+                    if (_searchCutOff)
+                        break;
 
+                    scores.Add((score, move, StateClone.MAX_DEPTH));
+                    StateClone.MAX_DEPTH += 2;
                     prevHit = _hit;
                     prevNoHit = _noHit;
                     prevGoodHit = _goodHit;
+                }
+            });
+
+            int depth = -1;
+            double bestScore = double.MinValue;
+            Direction bestMove = Direction.NO_MOVE;
+            foreach (var item in scores)
+            {
+                if (item.depth > depth || item.depth == depth && item.score > bestScore)
+                {
+                    depth = item.depth;
+                    bestScore = item.score;
+                    bestMove = item.move;
                 }
             }
 
@@ -305,18 +300,8 @@ namespace Battlesnake.Algorithm
             return bestMove;
         }
 
-        private double _hit = 0d, _noHit = 0d, _goodHit = 0d;
-
         //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
-        //http://people.csail.mit.edu/plaat/mtdf.html#abmem
-        private struct TransporationValue
-        {
-            public Direction Move { get; set; }
-            public int MoveIndex { get; set; }
-            public int Depth { get; set; }
-            public double LowerBound { get; set; }
-            public double UpperBound { get; set; }
-        }
+        //http://people.csail.mit.edu/plaat/mtdf.html#abmem        
         private readonly ConcurrentDictionary<int, TransporationValue> _transportationTable = new();
         private (double score, Direction move) Minimax(State state, Snake me, Snake other, int depth, bool isMaximizingPlayer = true, int myFoodCount = 0, int otherFoodCount = 0, double alpha = double.MinValue, double beta = double.MaxValue)
         {
@@ -392,9 +377,8 @@ namespace Battlesnake.Algorithm
                     //Store values for updating hash
                     Point oldHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
                     Point oldNeck = new() { X = currentSnake.Body[1].X, Y = currentSnake.Body[1].Y };
-                    Point oldTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
                     //Change state of the game
-                    Point tail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
+                    Point oldTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
                     Direction move = GetMove(x, y);
                     GameObject destinationTile = state.Grid[dx][dy];
                     int currentHp = currentSnake.Health;
@@ -423,7 +407,7 @@ namespace Battlesnake.Algorithm
                     if (!IsTimeoutThresholdReached) //Only clear if timeout is not reached
                     {
                         //Move the snake back
-                        state.MoveSnakeBackward(currentSnake, tail, isFoodTile, destinationTile);
+                        state.MoveSnakeBackward(currentSnake, oldTail, isFoodTile, destinationTile);
                         state.UpdateSnakesToGrid(snakes);
                         //Revert changes made doing previous state
                         currentSnake.Health = currentHp;
