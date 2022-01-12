@@ -85,22 +85,24 @@ namespace Battlesnake.Algorithm
                         return _dir;
                     }
                 }
-
-                Point target = FindOptimalFood(me);
-                if (target != null)
+                else
                 {
-                    Direction attack = Attack(me);
-                    if (attack != Direction.NO_MOVE)
+                    Point target = FindOptimalFood(me);
+                    if (target != null)
                     {
-                        _dir = attack;
-                        return _dir;
-                    }
+                        Direction attack = Attack(me);
+                        if (attack != Direction.NO_MOVE)
+                        {
+                            _dir = attack;
+                            return _dir;
+                        }
 
-                    Direction bfs = BFS(me, target);
-                    if (bfs != Direction.NO_MOVE)
-                    {
-                        _dir = bfs;
-                        return _dir;
+                        Direction bfs = BFS(me, target);
+                        if (bfs != Direction.NO_MOVE)
+                        {
+                            _dir = bfs;
+                            return _dir;
+                        }
                     }
                 }
 
@@ -359,7 +361,7 @@ namespace Battlesnake.Algorithm
             Snake[] snakes = new Snake[2] { me, other };
             Snake currentSnake = isMaximizingPlayer ? me : other;
             double bestMoveScore = isMaximizingPlayer ? double.MinValue : double.MaxValue;
-            int prevAppleCount = isMaximizingPlayer ? myFoodCount : otherFoodCount;
+            int currentFoodCount = isMaximizingPlayer ? myFoodCount : otherFoodCount;
             for (int i = 0; i < moves.Length; i++) //For loop because it's faster in runtime
             {
                 if (IsTimeoutThresholdReached) //Halt possible new entries
@@ -377,16 +379,23 @@ namespace Battlesnake.Algorithm
                     //Store values for updating hash
                     Point oldHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
                     Point oldNeck = new() { X = currentSnake.Body[1].X, Y = currentSnake.Body[1].Y };
-                    //Change state of the game
                     Point oldTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
-                    Direction move = GetMove(x, y);
+                    //Change state of the game
                     GameObject destinationTile = state.Grid[dx][dy];
-                    int currentHp = currentSnake.Health;
-                    int currentLength = currentSnake.Length;
+                    int prevHp = currentSnake.Health;
+                    int prevLength = currentSnake.Length;
+                    currentSnake.Health -= _game.Game.Ruleset.Settings.HazardDamagePerTurn;
                     bool isFoodTile = IsFoodTile(state.Grid, dx, dy);
-                    int currentAppleCount = isFoodTile ? prevAppleCount + 1 : prevAppleCount;
-                    currentSnake.Health = isFoodTile ? HeuristicConstants.MAX_HEALTH : currentHp - _game.Game.Ruleset.Settings.HazardDamagePerTurn;
-                    currentSnake.Length = isFoodTile ? currentLength + 1 : currentLength;
+                    if (isFoodTile)
+                    {
+                        Snake temp = !isMaximizingPlayer ? me : other;
+                        if (dx != temp.Head.X && dy != temp.Head.Y || currentSnake.Length > temp.Length)
+                        {
+                            currentSnake.Length++;
+                            currentSnake.Health = HeuristicConstants.MAX_HEALTH;
+                            currentFoodCount++;
+                        }
+                    }
                     //Move the snake
                     state.MoveSnakeForward(currentSnake, x, y, isFoodTile);
                     state.UpdateSnakesToGrid(snakes);
@@ -395,13 +404,13 @@ namespace Battlesnake.Algorithm
                     Point newTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
                     state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
                     //Execute minimax
-                    (double score, Direction move) eval = Minimax(state: state,
+                    (double score, Direction move) = Minimax(state: state,
                                                                     me: isMaximizingPlayer ? currentSnake : me,
                                                                     other: !isMaximizingPlayer ? currentSnake : other,
                                                                     depth: depth - 1,
                                                                     isMaximizingPlayer: !isMaximizingPlayer,
-                                                                    myFoodCount: isMaximizingPlayer ? currentAppleCount : myFoodCount,
-                                                                    otherFoodCount: !isMaximizingPlayer ? currentAppleCount : otherFoodCount,
+                                                                    myFoodCount: isMaximizingPlayer ? currentFoodCount : myFoodCount,
+                                                                    otherFoodCount: !isMaximizingPlayer ? currentFoodCount : otherFoodCount,
                                                                     alpha: alpha,
                                                                     beta: beta);
                     if (!IsTimeoutThresholdReached) //Only clear if timeout is not reached
@@ -410,8 +419,8 @@ namespace Battlesnake.Algorithm
                         state.MoveSnakeBackward(currentSnake, oldTail, isFoodTile, destinationTile);
                         state.UpdateSnakesToGrid(snakes);
                         //Revert changes made doing previous state
-                        currentSnake.Health = currentHp;
-                        currentSnake.Length = currentLength;
+                        currentSnake.Health = prevHp;
+                        currentSnake.Length = prevLength;
                         //Revert changes made to the key
                         state.Key = ZobristHash.Instance.UpdateKeyBackward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
                         Debug.Assert(key == state.Key);
@@ -419,23 +428,23 @@ namespace Battlesnake.Algorithm
 
                     if (isMaximizingPlayer)
                     {
-                        if (eval.score > bestMoveScore)
+                        if (score > bestMoveScore)
                         {
-                            bestMoveScore = eval.score;
-                            bestMove = move;
+                            bestMoveScore = score;
+                            bestMove = GetMove(x, y);
                             moveIndex = i;
                         }
-                        alpha = Math.Max(alpha, eval.score);
+                        alpha = Math.Max(alpha, score);
                     }
                     else
                     {
-                        if (eval.score < bestMoveScore)
+                        if (score < bestMoveScore)
                         {
-                            bestMoveScore = eval.score;
-                            bestMove = move;
+                            bestMoveScore = score;
+                            bestMove = GetMove(x, y);
                             moveIndex = i;
                         }
-                        beta = Math.Min(beta, eval.score);
+                        beta = Math.Min(beta, score);
                     }
                     if (beta <= alpha) break;
                 }
@@ -454,7 +463,7 @@ namespace Battlesnake.Algorithm
             return (bestMoveScore, bestMove);
         }
 
-        private Direction GetMove(int x, int y)
+        private static Direction GetMove(int x, int y)
         {
             if (x == 0 && y == -1)
                 return Direction.LEFT;
@@ -482,15 +491,15 @@ namespace Battlesnake.Algorithm
         //Edge methods
         private bool IsOnAnyEdge(Point head) => IsOnRightEdge(head) || IsOnLeftEdge(head) || IsOnBottomEdge(head) || IsOnTopEdge(head);
         private bool IsOnRightEdge(Point head) => head.Y == _game.Board.Width - 1;
-        private bool IsOnLeftEdge(Point head) => head.Y == 0;
-        private bool IsOnTopEdge(Point head) => head.X == 0;
+        private static bool IsOnLeftEdge(Point head) => head.Y == 0;
+        private static bool IsOnTopEdge(Point head) => head.X == 0;
         private bool IsOnBottomEdge(Point head) => head.X == _game.Board.Height - 1;
         private bool IsAheadOnRightEdgeGoingUp(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.X + 1 == behindHead.X && behindHead.X == aheadNeck.X && me.Head.Y == _game.Board.Width - 2;
         private bool IsAheadOnRightEdgeGoingDown(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.X - 1 == behindHead.X && behindHead.X == aheadNeck.X && me.Head.Y == _game.Board.Width - 2;
-        private bool IsAheadOnLeftEdgeGoingUp(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.X + 1 == behindHead.X && behindHead.X == aheadNeck.X && me.Head.Y == 1;
-        private bool IsAheadOnLeftEdgeGoingDown(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.X - 1 == behindHead.X && behindHead.X == aheadNeck.X && me.Head.Y == 1;
-        private bool IsAheadOnTopEdgeGoingLeft(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y + 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == 1;
-        private bool IsAheadOnTopEdgeGoingRight(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y - 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == 1;
+        private static bool IsAheadOnLeftEdgeGoingUp(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.X + 1 == behindHead.X && behindHead.X == aheadNeck.X && me.Head.Y == 1;
+        private static bool IsAheadOnLeftEdgeGoingDown(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.X - 1 == behindHead.X && behindHead.X == aheadNeck.X && me.Head.Y == 1;
+        private static bool IsAheadOnTopEdgeGoingLeft(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y + 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == 1;
+        private static bool IsAheadOnTopEdgeGoingRight(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y - 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == 1;
         private bool IsAheadOnBottomEdgeGoingLeft(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y + 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == _game.Board.Height - 2;
         private bool IsAheadOnBottomEdgeGoingRight(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y - 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == _game.Board.Height - 2;
 
@@ -504,6 +513,11 @@ namespace Battlesnake.Algorithm
             int otherLength = other.Length;
             int maxDistance = h + w;
             List<Point> availableFoods = GetFoodFromGrid(state.Grid);
+
+            //----- Is game over -----
+            (double score, bool isGameOver) evaluateIfGameIsOver = EvaluateIfGameIsOver(me, other, remainingDepth, state.MAX_DEPTH);
+            if (evaluateIfGameIsOver.isGameOver)
+                return evaluateIfGameIsOver.score;
 
             //----- Aggresion -----
             double aggresionScore = 0d;
@@ -699,41 +713,14 @@ namespace Battlesnake.Algorithm
             }
             score += aggresionScore;
 
-            //----- Is game over -----
-            (double score, bool isGameOver) evaluateIfGameIsOver = EvaluateIfGameIsOver(me, other, remainingDepth, state.MAX_DEPTH);
-            if (evaluateIfGameIsOver.isGameOver)
-            {
-                score = evaluateIfGameIsOver.score;
-                return score;
-            }
+            //----- Voronoi & Food -----
+            (int score, int ownedFoodDepth) myVoronoi = VoronoiAlgorithm.VoronoiStateHeuristic(state.Grid, me, other);
+            score += myVoronoi.score * HeuristicConstants.VORONOI_VALUE;
 
-            //----- Voronoi -----
-            //double test = VoronoiAlgorithm.ChamberHeuristic(state.Grid, me, other);
-            //score += test;
-
-            (int score, int depth) voronoi = VoronoiAlgorithm.VoronoiStateHeuristic(state.Grid, me, other);
-            score += voronoi.score * HeuristicConstants.VORONOI_VALUE;
-
-            //----- Food -----
             double myFoodScore = 0d;
-            //if (me.Health <= 30 || myLength < otherLength + 2) //I am hungry or they are 2 sizes larger than me
-            //{
-            //    if (myFoodCount > 0)
-            //        myFoodScore = HeuristicConstants.MY_FOOD_VALUE * myFoodCount;
-            //    else
-            //    {
-            //        if (availableFoods.Count > 0)
-            //        {
-            //            Point myClosestFood = FindClosestFood(availableFoods, myHead);
-            //            int distanceToMyClosestFood = Util.ManhattenDistance(myHead.X, myHead.Y, myClosestFood.X, myClosestFood.Y);
-            //            myFoodScore = Math.Pow((maxDistance - distanceToMyClosestFood) / 4, 2);
-            //        }
-            //    }
-            //}
-
             if (availableFoods.Count > 0)
             {
-                int ownedFoodDistance = voronoi.depth;
+                int ownedFoodDistance = myVoronoi.ownedFoodDepth;
                 if (ownedFoodDistance == -1) //We don't control any food
                 {
                     ownedFoodDistance = FindClosestFoodDistanceUsingBFS(state.Grid, myHead);
@@ -750,24 +737,26 @@ namespace Battlesnake.Algorithm
             }
             score += myFoodScore;
 
+            (int score, int ownedFoodDepth) otherVoronoi = VoronoiAlgorithm.VoronoiStateHeuristic(state.Grid, other, me);
+            score += -1d * otherVoronoi.score * HeuristicConstants.VORONOI_VALUE;
+
             double theirFoodScore = 0d;
-            if (other.Health <= 30 || otherLength < myLength + 2) //They are hungry or I am two sizes larger
+            if (availableFoods.Count > 0)
             {
-                if (otherFoodCount > 0)
-                    theirFoodScore -= HeuristicConstants.OTHER_FOOD_VALUE * otherFoodCount;
-                else
+                int ownedFoodDistance = otherVoronoi.ownedFoodDepth;
+                if (ownedFoodDistance == -1) //We don't control any food
                 {
-                    if (availableFoods.Count > 0)
+                    ownedFoodDistance = FindClosestFoodDistanceUsingBFS(state.Grid, otherHead);
+                    if (ownedFoodDistance == -1)
                     {
-                        int distanceToTheirClosestFood = FindClosestFoodDistanceUsingBFS(state.Grid, otherHead);
-                        if (distanceToTheirClosestFood == -1)
-                        {
-                            Point otherClosestFood = FindClosestFoodUsingManhattenDistance(availableFoods, otherHead);
-                            distanceToTheirClosestFood = Util.ManhattenDistance(otherHead.X, otherHead.Y, otherClosestFood.X, otherClosestFood.Y);
-                        }
-                        theirFoodScore = Math.Pow((maxDistance - distanceToTheirClosestFood) / 4, 2);
+                        Point otherClosestFood = FindClosestFoodUsingManhattenDistance(availableFoods, otherHead);
+                        ownedFoodDistance = Util.ManhattenDistance(otherHead.X, otherHead.Y, otherClosestFood.X, otherClosestFood.Y);
                     }
                 }
+                if (other.Health < ownedFoodDistance)
+                    return 10000d;
+                double rope = other.Health - ownedFoodDistance;
+                theirFoodScore = HeuristicConstants.OTHER_FOOD_VALUE * Math.Atan(rope / HeuristicConstants.ATAN_VALUE);
             }
             score += theirFoodScore;
 
@@ -810,9 +799,9 @@ namespace Battlesnake.Algorithm
             return score;
         }
 
-        private bool IsOnAnyLineSecondFromEdge(int height, int width, Point myHead) => myHead.X == 1 || myHead.X == height - 2 || myHead.Y == 1 || myHead.Y == width - 2;
-        private bool InnerCenter(Point head) => head.X >= 3 && head.X <= 7 && head.Y >= 3 && head.Y <= 7;
-        private bool OuterCenter(Point head) => head.X == 2 && head.Y >= 2 && head.Y <= 8 ||  //Upper center
+        private static bool IsOnAnyLineSecondFromEdge(int height, int width, Point myHead) => myHead.X == 1 || myHead.X == height - 2 || myHead.Y == 1 || myHead.Y == width - 2;
+        private static bool InnerCenter(Point head) => head.X >= 3 && head.X <= 7 && head.Y >= 3 && head.Y <= 7;
+        private static bool OuterCenter(Point head) => head.X == 2 && head.Y >= 2 && head.Y <= 8 ||  //Upper center
                                                 head.X == 8 && head.Y >= 2 && head.Y <= 8 || //Lower center
                                                 head.Y == 2 && head.X >= 2 && head.X <= 8 || //Left center
                                                 head.Y == 8 && head.X >= 2 && head.X <= 8;   //Right center
@@ -921,24 +910,27 @@ namespace Battlesnake.Algorithm
             }
 
             int mySnakeHeadOnCount = 0, otherSnakeHeadOnCount = 0;
-            for (int i = 0; i < me.Body.Count; i++)
+            if (_game.Turn != 0)
             {
-                Point body = me.Body[i];
-                if (body.X == myHead.X && body.Y == myHead.Y)
-                    mySnakeHeadOnCount++;
+                for (int i = 0; i < me.Body.Count; i++)
+                {
+                    Point body = me.Body[i];
+                    if (body.X == myHead.X && body.Y == myHead.Y)
+                        mySnakeHeadOnCount++;
 
-                if (body.X == otherHead.X && body.Y == otherHead.Y)
-                    otherSnakeHeadOnCount++;
-            }
+                    if (body.X == otherHead.X && body.Y == otherHead.Y)
+                        otherSnakeHeadOnCount++;
+                }
 
-            for (int i = 0; i < other.Body.Count; i++)
-            {
-                Point body = other.Body[i];
-                if (body.X == myHead.X && body.Y == myHead.Y)
-                    mySnakeHeadOnCount++;
+                for (int i = 0; i < other.Body.Count; i++)
+                {
+                    Point body = other.Body[i];
+                    if (body.X == myHead.X && body.Y == myHead.Y)
+                        mySnakeHeadOnCount++;
 
-                if (body.X == otherHead.X && body.Y == otherHead.Y)
-                    otherSnakeHeadOnCount++;
+                    if (body.X == otherHead.X && body.Y == otherHead.Y)
+                        otherSnakeHeadOnCount++;
+                }
             }
 
             if (!headOnCollsion) //Maybe body collsion
@@ -981,7 +973,7 @@ namespace Battlesnake.Algorithm
             return (score, isGameOver);
         }
 
-        private double AdjustForFutureUncetainty(double score, int remainingDepth, int maxDepth)
+        private static double AdjustForFutureUncetainty(double score, int remainingDepth, int maxDepth)
         {
             int pow = maxDepth - remainingDepth - 2;
             double futureUncertainty = Math.Pow(HeuristicConstants.FUTURE_UNCERTAINTY_FACOTR, pow);
@@ -1167,7 +1159,7 @@ namespace Battlesnake.Algorithm
             return myFoodDistances.First().food;
         }
 
-        private Point FindClosestFoodUsingManhattenDistance(List<Point> foods, Point head)
+        private static Point FindClosestFoodUsingManhattenDistance(List<Point> foods, Point head)
         {
             if (foods.Count == 0) return null; //Base case
             else if (foods.Count == 1) return foods.First(); //Base case
@@ -1359,7 +1351,7 @@ namespace Battlesnake.Algorithm
             return x >= 0 && x < _game.Board.Height && y >= 0 && y < _game.Board.Width;
         }
 
-        private bool IsHeadCollision(Snake me, Snake other)
+        private static bool IsHeadCollision(Snake me, Snake other)
         {
             return me.Head.X == other.Head.X && me.Head.Y == other.Head.Y;
         }
@@ -1442,7 +1434,7 @@ namespace Battlesnake.Algorithm
             }
         }
 
-        private void UpdateCoordinates(GameStatusDTO game)
+        private static void UpdateCoordinates(GameStatusDTO game)
         {
             int h = game.Board.Height - 1;
             for (int i = 0; i < game.Board.Food.Count; i++)
@@ -1472,9 +1464,9 @@ namespace Battlesnake.Algorithm
             }
 
             game.You.Head.Y = h - game.You.Head.Y;
-            int t = game.You.Head.X;
+            int temp1 = game.You.Head.X;
             game.You.Head.X = game.You.Head.Y;
-            game.You.Head.Y = t;
+            game.You.Head.Y = temp1;
             for (int i = 0; i < game.You.Body.Count; i++)
             {
                 Point body = game.You.Body[i];
@@ -1485,7 +1477,7 @@ namespace Battlesnake.Algorithm
             }
         }
 
-        private Direction MoveLeft(Snake snake)
+        private static Direction MoveLeft(Snake snake)
         {
             if (snake.Direction != Direction.RIGHT)
                 return Direction.LEFT;
@@ -1493,7 +1485,7 @@ namespace Battlesnake.Algorithm
                 return Direction.NO_MOVE;
         }
 
-        private Direction MoveRight(Snake snake)
+        private static Direction MoveRight(Snake snake)
         {
             if (snake.Direction != Direction.LEFT)
                 return Direction.RIGHT;
@@ -1501,7 +1493,7 @@ namespace Battlesnake.Algorithm
                 return Direction.NO_MOVE;
         }
 
-        private Direction MoveUp(Snake snake)
+        private static Direction MoveUp(Snake snake)
         {
             if (snake.Direction != Direction.DOWN)
                 return Direction.UP;
@@ -1509,7 +1501,7 @@ namespace Battlesnake.Algorithm
                 return Direction.NO_MOVE;
         }
 
-        private Direction MoveDown(Snake snake)
+        private static Direction MoveDown(Snake snake)
         {
             if (snake.Direction != Direction.UP)
                 return Direction.DOWN;

@@ -22,7 +22,7 @@ namespace Battlesnake.Algorithm
         //FOOD
         //public const double MY_FOOD_VALUE = 50d;
         public const double MY_FOOD_VALUE = 68.60914d;
-        public const double OTHER_FOOD_VALUE = 25d;
+        public const double OTHER_FOOD_VALUE = 34.30457d;
         public const double ATAN_VALUE = 8.51774d;
 
         //FLOODFILL

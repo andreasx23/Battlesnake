@@ -66,26 +66,55 @@ namespace Battlesnake.Train
 
             //return 0d;
 
-            Process cmd = new();
-            cmd.StartInfo.FileName = "cmd.exe";
-            cmd.StartInfo.RedirectStandardInput = true;
-            cmd.StartInfo.RedirectStandardOutput = true;
-            //cmd.StartInfo.CreateNoWindow = true;
-            cmd.StartInfo.UseShellExecute = false;
-            cmd.Start();
-            cmd.StandardInput.WriteLine(@"C:\Users\Andreas\Desktop\rules-main\battlesnake.exe play -W 11 -H 11 --name me --url http://192.168.0.101:81/api/gamev2 --name other --url http://192.168.0.101:81/api/gametest");//--viewmap");
-            cmd.StandardInput.Flush();
-            cmd.StandardInput.Close();
-            cmd.WaitForExit();
-            string output = cmd.StandardOutput.ReadToEnd();
-            double score = 0d;
-            Console.Clear();
-            Console.WriteLine("Output: " + output);
-            if (output.Contains("me is the winner"))
-                score = 1d;
-            else if (output.Contains("It was a draw"))
-                score = 0.5d;
-            return score;
+            Process p = new Process();
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardInput = true;
+            p.StartInfo.RedirectStandardOutput = true;
+
+            p.StartInfo.FileName = @"C:\Users\Andreas\Desktop\BattlesnakeTester.bat";
+            p.StartInfo.CreateNoWindow = true;
+            p.Start();
+
+            System.IO.StreamWriter wr = p.StandardInput;
+            System.IO.StreamReader rr = p.StandardOutput;
+
+            Console.WriteLine(rr.ReadToEnd());
+
+            p.WaitForExit();
+
+
+
+            //Process cmd = new();
+            //cmd.StartInfo.FileName = "cmd.exe";
+            //cmd.StartInfo.RedirectStandardInput = true;
+            //cmd.StartInfo.RedirectStandardOutput = true;
+            //var result = cmd.Start();
+            //Debug.Assert(result);
+            //cmd.StandardInput.WriteLine(@"C:\Users\Andreas\Desktop\battlesnakeCLI\battlesnake.exe play -W 11 -H 11 --name me --url http://192.168.0.101:81/api/gamev2 --name other --url http://192.168.0.101:81/api/gametest");
+
+            //cmd.WaitForExit(); //wait indefinitely for the associated process to exit.
+            return 0d;
+
+            //Process cmd = new();
+            //cmd.StartInfo.FileName = "cmd.exe";
+            //cmd.StartInfo.RedirectStandardInput = true;
+            //cmd.StartInfo.RedirectStandardOutput = true;
+            ////cmd.StartInfo.CreateNoWindow = true;
+            //cmd.StartInfo.UseShellExecute = false;
+            //cmd.Start();
+            //cmd.StandardInput.WriteLine(@"C:\Users\Andreas\Desktop\rules-main\battlesnake.exe play -W 11 -H 11 --name me --url http://192.168.0.101:81/api/gamev2 --name other --url http://192.168.0.101:81/api/gametest");//--viewmap");
+            //cmd.StandardInput.Flush();
+            //cmd.StandardInput.Close();
+            //cmd.WaitForExit();
+            //string output = cmd.StandardOutput.ReadToEnd();
+            //double score = 0d;
+            //Console.Clear();
+            //Console.WriteLine("Output: " + output);
+            //if (output.Contains("me is the winner"))
+            //    score = 1d;
+            //else if (output.Contains("It was a draw"))
+            //    score = 0.5d;
+            //return score;
         }
     }
 }

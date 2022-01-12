@@ -102,7 +102,7 @@ namespace Battlesnake.Algorithm
 
         //https://github.com/aleksiy325/snek-two/blob/da589b945e347c5178f6cc0c8b190a28651cce50/src/common/game_state.cpp
         //https://github.com/aleksiy325/snek-two/blob/da589b945e347c5178f6cc0c8b190a28651cce50/src/strategies/minimax_snake.cpp
-        private static (int score, int depth) GameStateVoronoi(Snake me, Snake other)
+        private static (int score, int ownedFoodDepth) GameStateVoronoi(Snake player, Snake opponent)
         {
             int myId = 0;
             int otherId = 1;
@@ -113,10 +113,10 @@ namespace Battlesnake.Algorithm
             Queue<(int x, int y, int id)> queue = new();
             Dictionary<(int x, int y), int> isVisited = new();
             int[] counts = new int[2];
-            queue.Enqueue((me.Head.X, me.Head.Y, myId));
-            isVisited.Add((me.Head.X, me.Head.Y), myId);
-            queue.Enqueue((other.Head.X, other.Head.Y, otherId));
-            isVisited.Add((other.Head.X, other.Head.Y), otherId);
+            queue.Enqueue((player.Head.X, player.Head.Y, myId));
+            isVisited.Add((player.Head.X, player.Head.Y), myId);
+            queue.Enqueue((opponent.Head.X, opponent.Head.Y, otherId));
+            isVisited.Add((opponent.Head.X, opponent.Head.Y), otherId);
             queue.Enqueue(pairDepthMark);
             while (queue.Any())
             {
@@ -154,10 +154,10 @@ namespace Battlesnake.Algorithm
             return (counts[myId], foodDepth);
         }
 
-        public static (int score, int depth) VoronoiStateHeuristic(GameObject[][] grid, Snake me, Snake other)
+        public static (int score, int ownedFoodDepth) VoronoiStateHeuristic(GameObject[][] grid, Snake player, Snake opponent)
         {
             _grid = grid;
-            return GameStateVoronoi(me, other);
+            return GameStateVoronoi(player, opponent);
         }
 
         public static double VoronoiHeuristic(GameObject[][] grid, Snake me, Snake other)
