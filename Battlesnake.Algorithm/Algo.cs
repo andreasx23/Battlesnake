@@ -479,12 +479,13 @@ namespace Battlesnake.Algorithm
 
         private List<Point> GetFoodFromGrid(GameObject[][] grid)
         {
-            int h = grid.Length, w = grid.First().Length;
             List<Point> foods = new();
-            for (int i = 0; i < h; i++)
-                for (int j = 0; j < w; j++)
-                    if (IsFoodTile(grid, i, j))
-                        foods.Add(new Point() { X = i, Y = j });
+            for (int i = 0; i < _game.Board.Food.Count; i++)
+            {
+                Point food = _game.Board.Food[i];
+                if (IsFoodTile(grid, food.X, food.Y))
+                    foods.Add(new Point() { X = food.X, Y = food.Y });
+            }
             return foods;
         }
 
