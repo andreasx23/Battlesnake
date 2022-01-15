@@ -10,6 +10,7 @@ using AForge.Neuro.Learning;
 using Battlesnake.Algorithm;
 using Battlesnake.Algorithm.GeneticAlgorithmTest;
 using System.Threading.Tasks;
+using Battlesnake.Utility;
 
 namespace Battlesnake.Train
 {
@@ -17,6 +18,8 @@ namespace Battlesnake.Train
     {
         public static void Main(string[] args)
         {
+            Util.LikelihoodOfSuperiority(84, 0, 56);
+
             //var snek = GA.FindBestSnake();
             //Console.Clear();
             //Console.WriteLine("BEST VALUES");
@@ -32,13 +35,13 @@ namespace Battlesnake.Train
             //Console.WriteLine(snek.CENTER_VALUE_INNER);
             //Console.WriteLine(snek.CENTER_VALUE_OUTER);
 
-            double score = PlayGame();
-            //Parallel.For(0, 10, i =>
-            //{
-            //    score += PlayGame();
-            //});
-            Console.WriteLine(score);
-            Console.ReadLine();
+            //double score = PlayGame();
+            ////Parallel.For(0, 10, i =>
+            ////{
+            ////    score += PlayGame();
+            ////});
+            //Console.WriteLine(score);
+            //Console.ReadLine();
 
             //AlogoRunLocal local = new(11, 11, 2);
             //local.Play();

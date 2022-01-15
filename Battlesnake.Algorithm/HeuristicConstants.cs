@@ -11,19 +11,18 @@ namespace Battlesnake.Algorithm
         //MINIMAX VALUES
         public const int MINIMAX_DEPTH = 8;
         public const int MAX_HEALTH = 100;
-        public const double MAX_SNAKE_LENGTH = 30d;
+        public const double MAX_SNAKE_LENGTH = 40d;
 
         //HEURISTIC
-        public const double FUTURE_UNCERTAINTY_FACOTR = 0.87d;
+        public const double FUTURE_UNCERTAINTY_FACOTR = 0.90d;
 
         //AGGRESSION
-        public const double AGGRESSION_VALUE = 7.5d;
+        public const double AGGRESSION_VALUE = 10d;
 
         //FOOD
-        //public const double MY_FOOD_VALUE = 50d;
-        public const double MY_FOOD_VALUE = 68.60914d;
-        public const double OTHER_FOOD_VALUE = 34.30457d;
-        public const double ATAN_VALUE = 8.51774d;
+        public const double MY_FOOD_VALUE = 50d;
+        public const double OTHER_FOOD_VALUE = 25d;
+        public const double ATAN_VALUE = 7.5;
 
         //FLOODFILL
         public const double MY_FLOODFILL_VALUE = 1d;
