@@ -228,6 +228,9 @@ namespace Battlesnake.Algorithm
                 prevNoHit = _noHit;
                 prevGoodHit = _goodHit;
 
+                if (depth == 8)
+                    break;
+
                 depth += 2;
             }
 
@@ -257,10 +260,12 @@ namespace Battlesnake.Algorithm
                 Snake otherClone = other.Clone();
                 while (true)
                 {
-                    if (IsTimeoutThresholdReached)
+                    if (IsTimeoutThresholdReached || StateClone.MAX_DEPTH > 50)
                         break;
 
                     /*
+                     * https://play.battlesnake.com/g/d75409f9-00e1-42fe-8b3a-31bb47fef91e/?turn=98 -- bug
+                     * 
                      * https://www.chessprogramming.org/Lazy_SMP
                      * https://chess.stackexchange.com/questions/35257/chess-engine-using-lazysmp
                      * 
@@ -718,7 +723,7 @@ namespace Battlesnake.Algorithm
             (int score, int ownedFoodDepth) myVoronoi = VoronoiAlgorithm.VoronoiStateHeuristic(state.Grid, me, other);
             score += myVoronoi.score * HeuristicConstants.VORONOI_VALUE;
 
-            double myFoodScore = 0d;
+            double myFoodScore = 0d;// myFoodCount * HeuristicConstants.MY_FOOD_VALUE;
             if (availableFoods.Count > 0)
             {
                 int ownedFoodDistance = myVoronoi.ownedFoodDepth;
@@ -731,17 +736,17 @@ namespace Battlesnake.Algorithm
                         ownedFoodDistance = Util.ManhattenDistance(myHead.X, myHead.Y, myClosestFood.X, myClosestFood.Y);
                     }
                 }
-                if (me.Health < ownedFoodDistance)
+                if (me.Health - 3 < ownedFoodDistance) //Minus 3 to give 3 ekstra turns to reach food
                     return -10000d;
                 double rope = me.Health - ownedFoodDistance;
-                myFoodScore = HeuristicConstants.MY_FOOD_VALUE * Math.Atan(rope / HeuristicConstants.ATAN_VALUE);
+                myFoodScore += HeuristicConstants.MY_FOOD_VALUE * Math.Atan(rope / HeuristicConstants.ATAN_VALUE);
             }
             score += myFoodScore;
 
             (int score, int ownedFoodDepth) otherVoronoi = VoronoiAlgorithm.VoronoiStateHeuristic(state.Grid, other, me);
             score += -1d * otherVoronoi.score * HeuristicConstants.VORONOI_VALUE;
 
-            double theirFoodScore = 0d;
+            double theirFoodScore = 0d;// otherFoodCount * HeuristicConstants.OTHER_FOOD_VALUE;
             if (availableFoods.Count > 0)
             {
                 int ownedFoodDistance = otherVoronoi.ownedFoodDepth;
@@ -754,10 +759,10 @@ namespace Battlesnake.Algorithm
                         ownedFoodDistance = Util.ManhattenDistance(otherHead.X, otherHead.Y, otherClosestFood.X, otherClosestFood.Y);
                     }
                 }
-                if (other.Health < ownedFoodDistance)
+                if (other.Health - 3 < ownedFoodDistance) //Minus 3 to give 3 ekstra turns to reach food
                     return 10000d;
                 double rope = other.Health - ownedFoodDistance;
-                theirFoodScore = HeuristicConstants.OTHER_FOOD_VALUE * Math.Atan(rope / HeuristicConstants.ATAN_VALUE);
+                theirFoodScore += HeuristicConstants.OTHER_FOOD_VALUE * Math.Atan(rope / HeuristicConstants.ATAN_VALUE);
             }
             score += theirFoodScore;
 
@@ -802,10 +807,10 @@ namespace Battlesnake.Algorithm
 
         private static bool IsOnAnyLineSecondFromEdge(int height, int width, Point myHead) => myHead.X == 1 || myHead.X == height - 2 || myHead.Y == 1 || myHead.Y == width - 2;
         private static bool InnerCenter(Point head) => head.X >= 3 && head.X <= 7 && head.Y >= 3 && head.Y <= 7;
-        private static bool OuterCenter(Point head) => head.X == 2 && head.Y >= 2 && head.Y <= 8 ||  //Upper center
-                                                head.X == 8 && head.Y >= 2 && head.Y <= 8 || //Lower center
-                                                head.Y == 2 && head.X >= 2 && head.X <= 8 || //Left center
-                                                head.Y == 8 && head.X >= 2 && head.X <= 8;   //Right center
+        private static bool OuterCenter(Point head) => head.X == 2 && head.Y >= 2 && head.Y <= 8 || //Upper center
+                                                       head.X == 8 && head.Y >= 2 && head.Y <= 8 || //Lower center
+                                                       head.Y == 2 && head.X >= 2 && head.X <= 8 || //Left center
+                                                       head.Y == 8 && head.X >= 2 && head.X <= 8;   //Right center
 
         private (double distance, Point corner) FindClosestCorner(Point head)
         {
@@ -885,16 +890,16 @@ namespace Battlesnake.Algorithm
             bool headOnCollsion = false;
 
             if (!IsInBounds(myHead.X, myHead.Y))
-                mySnakeDead = true;
+                mySnakeMaybeDead = true;
 
             if (!IsInBounds(otherHead.X, otherHead.Y))
-                otherSnakeDead = true;
+                otherSnakeMaybeDead = true;
 
             if (me.Health <= 0)
-                mySnakeDead = true;
+                mySnakeMaybeDead = true;
 
             if (other.Health <= 0)
-                otherSnakeDead = true;
+                otherSnakeMaybeDead = true;
 
             if (IsHeadCollision(me, other))
             {
@@ -953,28 +958,28 @@ namespace Battlesnake.Algorithm
 
             double score;
             if (mySnakeDead)
-                score = AdjustForFutureUncetainty(-1000, remainingDepth, maxDepth);
+                score = AdjustForFutureUncertainty(-1000, remainingDepth, maxDepth);
             else if (mySnakeMaybeDead && otherSnakeMaybeDead)
-                score = AdjustForFutureUncetainty(-750, remainingDepth, maxDepth);
+                score = AdjustForFutureUncertainty(-750, remainingDepth, maxDepth);
             else if (mySnakeMaybeDead)
-                score = AdjustForFutureUncetainty(-500, remainingDepth, maxDepth);
+                score = AdjustForFutureUncertainty(-500, remainingDepth, maxDepth);
             else if (otherSnakeMaybeDead)
-                score = AdjustForFutureUncetainty(500, remainingDepth, maxDepth);
+                score = AdjustForFutureUncertainty(500, remainingDepth, maxDepth);
             else if (otherSnakeDead)
-                score = AdjustForFutureUncetainty(1000, remainingDepth, maxDepth);
+                score = AdjustForFutureUncertainty(1000, remainingDepth, maxDepth);
             else
-                score = AdjustForFutureUncetainty(0, remainingDepth, maxDepth);
-
-            bool isGameOver = false;
-            if (mySnakeDead || otherSnakeDead || mySnakeMaybeDead || otherSnakeMaybeDead) isGameOver = true;
+                score = AdjustForFutureUncertainty(0, remainingDepth, maxDepth);
 
             //Node depth score -- https://levelup.gitconnected.com/improving-minimax-performance-fc82bc337dfd section 9
             score += remainingDepth;
 
+            bool isGameOver = false;
+            if (mySnakeDead || otherSnakeDead || mySnakeMaybeDead || otherSnakeMaybeDead) isGameOver = true;
+
             return (score, isGameOver);
         }
 
-        private static double AdjustForFutureUncetainty(double score, int remainingDepth, int maxDepth)
+        private static double AdjustForFutureUncertainty(double score, int remainingDepth, int maxDepth)
         {
             int pow = maxDepth - remainingDepth - 2;
             double futureUncertainty = Math.Pow(HeuristicConstants.FUTURE_UNCERTAINTY_FACOTR, pow);
@@ -1211,56 +1216,6 @@ namespace Battlesnake.Algorithm
             }
             return -1;
         }
-
-        //https://github.com/aleksiy325/snek-two/blob/da589b945e347c5178f6cc0c8b190a28651cce50/src/common/game_state.cpp -- maybe implement bfsFood from here
-        //This implementation is bugged and wrong currently
-        private int FindClosestFoodDistanceUsingBFSWithDepth(GameObject[][] grid, Snake me, Snake other, Point head)
-        {
-            int depth = 0, h = grid.Length, w = grid.First().Length;
-            (int x, int y, int steps) DEPTH_MARK = (-1, -1, -1);
-            Queue<(int x, int y, int steps)> queue = new();
-            bool[,] isVisited = new bool[h, w];
-            foreach (var (x, y) in Neighbours(grid, head.X, head.Y))
-            {
-                queue.Enqueue((x, y, 1));
-                isVisited[x, y] = true;
-            }
-            queue.Enqueue(DEPTH_MARK);
-
-            int steps = -1;
-            while (queue.Any())
-            {
-                (int x, int y, int steps) current = queue.Dequeue();
-
-                if (current == DEPTH_MARK)
-                {
-                    depth++;
-                    queue.Enqueue(DEPTH_MARK);
-                    if (queue.Peek() == DEPTH_MARK)
-                        break;
-                }
-                else if (IsFoodTile(grid, current.x, current.y))
-                {
-                    steps = current.steps;
-                    break;
-                }
-                else
-                {
-                    int next = current.steps + 1;
-                    foreach (var (x, y) in _moves)
-                    {
-                        int dx = current.x + x, dy = current.y + y;
-                        if (IsSafe(grid, me, other, dx, dy, depth) && !isVisited[dx, dy])
-                        {
-                            isVisited[dx, dy] = true;
-                            queue.Enqueue((dx, dx, next));
-                        }
-                    }
-                }
-            }
-
-            return steps;
-        }
         #endregion
 
         #region Helper functions
@@ -1283,38 +1238,6 @@ namespace Battlesnake.Algorithm
                 Console.WriteLine(message);
             else
                 Debug.WriteLine(message);
-        }
-
-        private bool WillBeUnocupied(GameObject[][] grid, Snake me, Snake other, int x, int y, int distance)
-        {
-            bool willBeUnocupied = true;
-            if (!IsMoveableTile(grid, x, y))
-            {
-                Snake occupant = me.Body.Any(p => p.X == x && p.Y == y) ? me : other.Body.Any(p => p.X == x && p.Y == y) ? other : null;
-                if (occupant == null)
-                {
-                    Debug.Assert(false);
-                    return false;
-                }
-                int turnsOcupied = -1, n = occupant.Body.Count;
-                for (int i = 0; i < n; i++)
-                {
-                    Point b = occupant.Body[i];
-                    if (b.X == x && b.Y == y)
-                    {
-                        turnsOcupied = i;
-                        break;
-                    }
-                }
-                turnsOcupied = n - turnsOcupied + 1;
-                willBeUnocupied = turnsOcupied <= distance;
-            }
-            return willBeUnocupied;
-        }
-
-        private bool IsSafe(GameObject[][] grid, Snake me, Snake other, int x, int y, int distance)
-        {
-            return IsInBounds(x, y) && WillBeUnocupied(grid, me, other, x, y, distance);
         }
 
         private bool IsMoveableTile(int x, int y)
