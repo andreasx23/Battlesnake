@@ -55,6 +55,8 @@ namespace Battlesnake.Algorithm
                     }
                 }
                 Grid[snake.Head.X][snake.Head.Y] = GameObject.HEAD;
+                Point tail = snake.Body.Last();
+                Grid[tail.X][tail.Y] = GameObject.TAIL;
             }
         }
 
@@ -69,6 +71,8 @@ namespace Battlesnake.Algorithm
                 Point tail = current.Body.Last();
                 Grid[tail.X][tail.Y] = GameObject.FLOOR;
                 current.Body.RemoveAt(current.Body.Count - 1);
+                tail = current.Body.Last();
+                Grid[tail.X][tail.Y] = GameObject.TAIL;
             }
             Grid[newHead.X][newHead.Y] = GameObject.HEAD;
         }
@@ -85,7 +89,7 @@ namespace Battlesnake.Algorithm
                 current.Body.RemoveAt(current.Body.Count - 1);
             }
             current.Body.Add(new() { X = tail.X, Y = tail.Y });
-            Grid[tail.X][tail.Y] = GameObject.BODY;
+            Grid[tail.X][tail.Y] = GameObject.TAIL;
             Grid[current.Head.X][current.Head.Y] = GameObject.HEAD;
         }
 

@@ -57,7 +57,8 @@ namespace Battlesnake.Algorithm
                     if (_instance == null)
                     {
                         int seed = Guid.NewGuid().GetHashCode();
-                        _instance = new ZobristHash(height, width, 4, seed);
+                        int amountOfPieces = GameObject.GetNames(typeof(GameObject)).Length;
+                        _instance = new ZobristHash(height, width, amountOfPieces, seed);
                     }
                 }
             }
@@ -85,9 +86,9 @@ namespace Battlesnake.Algorithm
             hash ^= _zobristNumbers[myOldNeckIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //UNDO OLD NECK
             hash ^= _zobristNumbers[myOldHeadIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //ADD NEW NECK
             int myOldTailIndex = (oldTail.X * _height) + oldTail.X;
-            hash ^= _zobristNumbers[myOldTailIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //UNDO OLD TAIL
+            hash ^= _zobristNumbers[myOldTailIndex][Util.ConvertGameObjectToInt(GameObject.TAIL)]; //UNDO OLD TAIL
             int myNewTailIndex = (newTail.X * _height) + newTail.X;
-            hash ^= _zobristNumbers[myNewTailIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //ADD OLD TAIL
+            hash ^= _zobristNumbers[myNewTailIndex][Util.ConvertGameObjectToInt(GameObject.TAIL)]; //ADD OLD TAIL
             return hash;
         }
 
@@ -95,8 +96,8 @@ namespace Battlesnake.Algorithm
         {
             int myOldTailIndex = (oldTail.X * _height) + oldTail.X;
             int myNewTailIndex = (newTail.X * _height) + newTail.X;
-            hash ^= _zobristNumbers[myNewTailIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //UNDO NEW TAIL
-            hash ^= _zobristNumbers[myOldTailIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //ADD OLD TAIL
+            hash ^= _zobristNumbers[myNewTailIndex][Util.ConvertGameObjectToInt(GameObject.TAIL)]; //UNDO NEW TAIL
+            hash ^= _zobristNumbers[myOldTailIndex][Util.ConvertGameObjectToInt(GameObject.TAIL)]; //ADD OLD TAIL
             int myOldNeckIndex = (oldNeck.X * _height) + oldNeck.X;
             int myOldHeadIndex = (oldHead.X * _height) + oldHead.X;
             hash ^= _zobristNumbers[myOldHeadIndex][Util.ConvertGameObjectToInt(GameObject.BODY)]; //UNDO NEW NECK

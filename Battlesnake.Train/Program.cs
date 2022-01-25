@@ -18,7 +18,8 @@ namespace Battlesnake.Train
     {
         public static void Main(string[] args)
         {
-            Util.LikelihoodOfSuperiority(84, 0, 56);
+            Util.LikelihoodOfSuperiority(81, 1, 64);
+            return;
 
             //var snek = GA.FindBestSnake();
             //Console.Clear();

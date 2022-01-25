@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Battlesnake.Algorithm.Structs
 {
-    public struct TransporationValue
+    public struct TranspositionValue
     {
         public Direction Move { get; set; }
         public int MoveIndex { get; set; }

@@ -41,7 +41,7 @@ namespace Battlesnake.Algorithm
             for (int i = 0; i < neighbours.Count; i++)
             {
                 (int x, int y) = neighbours[i];
-                if (state[x, y] != 0) 
+                if (state[x, y] != 0)
                     continue;
                 isVisisted[x, y] = true;
                 dists[x, y] = 1;
@@ -102,12 +102,13 @@ namespace Battlesnake.Algorithm
 
         //https://github.com/aleksiy325/snek-two/blob/da589b945e347c5178f6cc0c8b190a28651cce50/src/common/game_state.cpp
         //https://github.com/aleksiy325/snek-two/blob/da589b945e347c5178f6cc0c8b190a28651cce50/src/strategies/minimax_snake.cpp
-        private static (int score, int ownedFoodDepth) GameStateVoronoi(Snake player, Snake opponent)
+        private static (int score, int ownedFoodDepth)[] GameStateVoronoi(Snake player, Snake opponent)
         {
-            int myId = 0;
-            int otherId = 1;
+            (int score, int ownedFoodDepth)[] voronoi = { (0, -1), (0, -1) };
+            if (player.Head.X == opponent.Head.X && player.Head.Y == opponent.Head.Y) return voronoi;
+            int myId = 0, myFoodDepth = -1;
+            int otherId = 1, otherFoodDepth = -1;
             int depth = 0;
-            int foodDepth = -1;
             (int x, int y, int id) pairDepthMark = (-1, -1, -1);
             const int MARK = -1;
             Queue<(int x, int y, int id)> queue = new();
@@ -130,8 +131,10 @@ namespace Battlesnake.Algorithm
                 }
                 else
                 {
-                    foreach (var (x, y) in Neighbours(current.x, current.y))
+                    List<(int x, int y)> neighbours = Neighbours(current.x, current.y);
+                    for (int i = 0; i < neighbours.Count; i++)
                     {
+                        (int x, int y) = neighbours[i];
                         if (isVisited.TryGetValue((x, y), out int id))
                         {
                             if (id != MARK && id != current.id)
@@ -142,8 +145,10 @@ namespace Battlesnake.Algorithm
                         }
                         else
                         {
-                            if (_grid[x][y] == GameObject.FOOD && current.id == myId && foodDepth == -1)
-                                foodDepth = depth;
+                            if (_grid[x][y] == GameObject.FOOD && current.id == myId && myFoodDepth == -1)
+                                myFoodDepth = depth;
+                            else if (_grid[x][y] == GameObject.FOOD && current.id == otherId && otherFoodDepth == -1)
+                                otherFoodDepth = depth;
                             counts[current.id]++;
                             isVisited[(x, y)] = current.id;
                             queue.Enqueue((x, y, current.id));
@@ -151,10 +156,12 @@ namespace Battlesnake.Algorithm
                     }
                 }
             }
-            return (counts[myId], foodDepth);
+            voronoi[myId] = (counts[myId], myFoodDepth);
+            voronoi[otherId] = (counts[otherId], otherFoodDepth);
+            return voronoi;
         }
 
-        public static (int score, int ownedFoodDepth) VoronoiStateHeuristic(GameObject[][] grid, Snake player, Snake opponent)
+        public static (int score, int ownedFoodDepth)[] VoronoiStateHeuristic(GameObject[][] grid, Snake player, Snake opponent)
         {
             _grid = grid;
             return GameStateVoronoi(player, opponent);

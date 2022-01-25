@@ -26,6 +26,7 @@ namespace Battlesnake.Utility
                 GameObject.FOOD => 1,
                 GameObject.HEAD => 2,
                 GameObject.BODY => 3,
+                GameObject.TAIL => 4,
                 _ => throw new Exception("Invalid piece"),
             };
         }
