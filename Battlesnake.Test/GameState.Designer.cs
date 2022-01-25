@@ -106,11 +106,38 @@ namespace Battlesnake.Test {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;651725&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;v.1.2.3&quot;},&quot;timeout&quot;:500},&quot;turn&quot;:200,&quot;you&quot;:{&quot;health&quot;:1,&quot;id&quot;:&quot;you&quot;,&quot;name&quot;:&quot;#22aa34&quot;,&quot;body&quot;:[{&quot;x&quot;:4,&quot;y&quot;:6},{&quot;x&quot;:5,&quot;y&quot;:6},{&quot;x&quot;:6,&quot;y&quot;:6}],&quot;head&quot;:{&quot;x&quot;:4,&quot;y&quot;:6},&quot;length&quot;:3},&quot;board&quot;:{&quot;food&quot;:[{&quot;x&quot;:4,&quot;y&quot;:5}],&quot;height&quot;:11,&quot;width&quot;:11,&quot;snakes&quot;:[{&quot;health&quot;:1,&quot;id&quot;:&quot;you&quot;,&quot;name&quot;:&quot;#22aa34&quot;,&quot;body&quot;:[{&quot;x&quot;:4,&quot;y&quot;:6},{&quot;x&quot;:5,&quot;y&quot;:6},{&quot;x&quot;:6,&quot;y&quot;:6}],&quot;head&quot;:{&quot;x&quot;:4,&quot;y&quot;:6},&quot;length&quot;:3},{&quot;health&quot;:100,&quot;id&quot;:&quot;#FF5b39&quot;,&quot;name&quot;:&quot;#FF5b39&quot;,&quot;b....
+        /// </summary>
+        internal static string EatYoureHungryOneHpLeft {
+            get {
+                return ResourceManager.GetString("EatYoureHungryOneHpLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;e15136fd-6b08-4d43-8373-9188365d9be3&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:43,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:9,&quot;y&quot;:5},{&quot;x&quot;:1,&quot;y&quot;:0},{&quot;x&quot;:2,&quot;y&quot;:6}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_88mxm64vprBjGjkTFfvRdCyb&quot;,&quot;name&quot;:&quot;BwukMaxi&quot;,&quot;body&quot;:[{&quot;x&quot;:1,&quot;y&quot;:8},{&quot;x&quot;:1,&quot;y&quot;:7},{&quot;x&quot;:1,&quot;y [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string MoveUpAgainstLeftWallForHeadToHead {
             get {
                 return ResourceManager.GetString("MoveUpAgainstLeftWallForHeadToHead", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;720962&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;v.1.2.3&quot;},&quot;timeout&quot;:500},&quot;turn&quot;:200,&quot;you&quot;:{&quot;health&quot;:100,&quot;id&quot;:&quot;you&quot;,&quot;name&quot;:&quot;#22aa34&quot;,&quot;body&quot;:[{&quot;x&quot;:0,&quot;y&quot;:10},{&quot;x&quot;:0,&quot;y&quot;:9},{&quot;x&quot;:0,&quot;y&quot;:8},{&quot;x&quot;:0,&quot;y&quot;:7}],&quot;head&quot;:{&quot;x&quot;:0,&quot;y&quot;:10},&quot;length&quot;:4},&quot;board&quot;:{&quot;food&quot;:[{&quot;x&quot;:6,&quot;y&quot;:6}],&quot;height&quot;:11,&quot;width&quot;:11,&quot;snakes&quot;:[{&quot;health&quot;:100,&quot;id&quot;:&quot;you&quot;,&quot;name&quot;:&quot;#22aa34&quot;,&quot;body&quot;:[{&quot;x&quot;:0,&quot;y&quot;:10},{&quot;x&quot;:0,&quot;y&quot;:9},{&quot;x&quot;:0,&quot;y&quot;:8},{&quot;x&quot;:0,&quot;y&quot;:7}],&quot;head&quot;:{&quot;x&quot;:0,&quot;y&quot;:10},&quot;length&quot;:4},{&quot;health&quot;:100,&qu....
+        /// </summary>
+        internal static string NeverRunIntoWalls {
+            get {
+                return ResourceManager.GetString("NeverRunIntoWalls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;720962&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;v.1.2.3&quot;},&quot;timeout&quot;:500},&quot;turn&quot;:200,&quot;you&quot;:{&quot;health&quot;:100,&quot;id&quot;:&quot;you&quot;,&quot;name&quot;:&quot;#22aa34&quot;,&quot;body&quot;:[{&quot;x&quot;:3,&quot;y&quot;:6},{&quot;x&quot;:3,&quot;y&quot;:7},{&quot;x&quot;:4,&quot;y&quot;:7},{&quot;x&quot;:4,&quot;y&quot;:6},{&quot;x&quot;:4,&quot;y&quot;:5},{&quot;x&quot;:3,&quot;y&quot;:5},{&quot;x&quot;:2,&quot;y&quot;:5}],&quot;head&quot;:{&quot;x&quot;:3,&quot;y&quot;:6},&quot;length&quot;:7},&quot;board&quot;:{&quot;food&quot;:[{&quot;x&quot;:6,&quot;y&quot;:6}],&quot;height&quot;:11,&quot;width&quot;:11,&quot;snakes&quot;:[{&quot;health&quot;:100,&quot;id&quot;:&quot;you&quot;,&quot;name&quot;:&quot;#22aa34&quot;,&quot;body&quot;:[{&quot;x&quot;:3,&quot;y&quot;:6},{&quot;x&quot;:3,&quot;y&quot;:7},{&quot;x&quot;:4,&quot;y&quot;:7},{&quot;x&quot;:4,&quot;y&quot;:6},{&q....
+        /// </summary>
+        internal static string NeverRunIntoYourSelf {
+            get {
+                return ResourceManager.GetString("NeverRunIntoYourSelf", resourceCulture);
             }
         }
         
@@ -129,6 +156,15 @@ namespace Battlesnake.Test {
         internal static string PinUpAgainstWall {
             get {
                 return ResourceManager.GetString("PinUpAgainstWall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;651725&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;v.1.2.3&quot;},&quot;timeout&quot;:500},&quot;turn&quot;:200,&quot;you&quot;:{&quot;health&quot;:1,&quot;id&quot;:&quot;you&quot;,&quot;name&quot;:&quot;#22aa34&quot;,&quot;body&quot;:[{&quot;x&quot;:4,&quot;y&quot;:6},{&quot;x&quot;:5,&quot;y&quot;:6},{&quot;x&quot;:6,&quot;y&quot;:6}],&quot;head&quot;:{&quot;x&quot;:4,&quot;y&quot;:6},&quot;length&quot;:3},&quot;board&quot;:{&quot;food&quot;:[{&quot;x&quot;:4,&quot;y&quot;:5}],&quot;height&quot;:11,&quot;width&quot;:11,&quot;snakes&quot;:[{&quot;health&quot;:1,&quot;id&quot;:&quot;you&quot;,&quot;name&quot;:&quot;#22aa34&quot;,&quot;body&quot;:[{&quot;x&quot;:4,&quot;y&quot;:6},{&quot;x&quot;:5,&quot;y&quot;:6},{&quot;x&quot;:6,&quot;y&quot;:6}],&quot;head&quot;:{&quot;x&quot;:4,&quot;y&quot;:6},&quot;length&quot;:3},{&quot;health&quot;:100,&quot;id&quot;:&quot;#FF5b39&quot;,&quot;name&quot;:&quot;#FF5b39&quot;,&quot;b....
+        /// </summary>
+        internal static string PreferDrawWhenHungryEvenWithOneHpLeft {
+            get {
+                return ResourceManager.GetString("PreferDrawWhenHungryEvenWithOneHpLeft", resourceCulture);
             }
         }
         

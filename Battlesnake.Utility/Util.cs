@@ -6,7 +6,10 @@ namespace Battlesnake.Utility
 {
     public class Util
     {
+        private static Random rand = new();
         public static bool IsDebug => Debugger.IsAttached;
+
+        public static bool RollThiftyThiftyChance() => rand.Next(0, 100) + 1 <= 50;
 
         public static string LogPrefix(string id)
         {

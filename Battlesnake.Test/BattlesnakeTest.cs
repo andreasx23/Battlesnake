@@ -10,6 +10,10 @@ namespace Battlesnake.Test
 {
     public class BattlesnakeTest
     {
+        /*
+         * https://nettogrof.github.io/battle-snake-board-generator/
+         * https://play.battlesnake.com/u/bwuk/bwukmaxi/
+         */
         private static GameStatusDTO DeserializeGameStatusDTO(string json) => JsonConvert.DeserializeObject<GameStatusDTO>(json);
 
         [Fact]
@@ -110,6 +114,46 @@ namespace Battlesnake.Test
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
             Direction move = alg.CalculateNextMove(state.You);
             Assert.True(move == Direction.LEFT);
+        }
+
+        [Fact]
+        public void EatYoureHungryOneHpLeft()
+        {
+            string json = GameState.EatYoureHungryOneHpLeft;
+            GameStatusDTO state = DeserializeGameStatusDTO(json);
+            Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
+            Direction move = alg.CalculateNextMove(state.You);
+            Assert.True(move == Direction.DOWN);
+        }
+
+        [Fact]
+        public void PreferDrawWhenHungryEvenWithOneHpLeft()
+        {
+            string json = GameState.PreferDrawWhenHungryEvenWithOneHpLeft;
+            GameStatusDTO state = DeserializeGameStatusDTO(json);
+            Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
+            Direction move = alg.CalculateNextMove(state.You);
+            Assert.True(move == Direction.DOWN);
+        }
+
+        [Fact]
+        public void NeverRunIntoYourSelf()
+        {
+            string json = GameState.NeverRunIntoYourSelf;
+            GameStatusDTO state = DeserializeGameStatusDTO(json);
+            Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
+            Direction move = alg.CalculateNextMove(state.You);
+            Assert.True(move == Direction.LEFT);
+        }
+
+        [Fact]
+        public void NeverRunIntoWalls()
+        {
+            string json = GameState.NeverRunIntoWalls;
+            GameStatusDTO state = DeserializeGameStatusDTO(json);
+            Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
+            Direction move = alg.CalculateNextMove(state.You);
+            Assert.True(move == Direction.RIGHT);
         }
     }
 }

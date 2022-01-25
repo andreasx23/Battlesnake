@@ -392,7 +392,7 @@ namespace Battlesnake.Algorithm
                     if (isFoodTile)
                     {
                         Snake temp = !isMaximizingPlayer ? me : other;
-                        if (dx != temp.Head.X && dy != temp.Head.Y || currentSnake.Length > temp.Length)
+                        if (dx != temp.Head.X && dy != temp.Head.Y || dx != temp.Head.X && dy == temp.Head.Y || dx == temp.Head.X && dy != temp.Head.Y || currentSnake.Length > temp.Length)
                         {
                             currentSnake.Length++;
                             currentSnake.Health = HeuristicConstants.MAX_HEALTH;
@@ -449,7 +449,7 @@ namespace Battlesnake.Algorithm
                         }
                         beta = Math.Min(beta, score);
                     }
-                    if (beta <= alpha) break;
+                    //if (beta <= alpha) break;
                 }
             }
 
@@ -506,6 +506,10 @@ namespace Battlesnake.Algorithm
         private static bool IsAheadOnTopEdgeGoingRight(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y - 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == 1;
         private bool IsAheadOnBottomEdgeGoingLeft(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y + 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == _game.Board.Height - 2;
         private bool IsAheadOnBottomEdgeGoingRight(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y - 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == _game.Board.Height - 2;
+        private static bool IsMovingLeft(Snake snake) => snake.Head.Y + 1 == snake.Body[1].Y;
+        private static bool IsMovingRight(Snake snake) => snake.Head.Y - 1 == snake.Body[1].Y;
+        private static bool IsMovingUp(Snake snake) => snake.Head.X + 1 == snake.Body[1].X;
+        private static bool IsMovingDown(Snake snake) => snake.Head.X - 1 == snake.Body[1].X;
 
         private double EvaluateState(State state, Snake me, Snake other, int remainingDepth, int myFoodCount, int otherFoodCount)
         {
@@ -627,13 +631,13 @@ namespace Battlesnake.Algorithm
                 }
                 else //Try to predict snake move
                 {
-                    if (otherHead.X - 1 == otherNeck.X) //Moving down
+                    if (IsMovingDown(other))
                         otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y + 1 };
-                    else if (otherHead.X + 1 == otherNeck.X) //Moving up
+                    else if (IsMovingUp(other))
                         otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y - 1 };
-                    else if (otherHead.Y - 1 == otherNeck.Y) //Moving right
+                    else if (IsMovingRight(other))
                         otherSnakeMove = new() { X = otherHead.X + 1, Y = otherHead.Y };
-                    else if (otherHead.Y + 1 == otherNeck.Y) //Moving left
+                    else if (IsMovingLeft(other))
                         otherSnakeMove = new() { X = otherHead.X - 1, Y = otherHead.Y };
                 }
 
@@ -650,70 +654,98 @@ namespace Battlesnake.Algorithm
                 {
                     Point myNeck = me.Body[1];
                     Point otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y };
-                    bool foundPossibleMove = false;
                     //I'm one tile ahead of the other snake and therefor I can cornor trap him
                     if (IsOnRightEdge(otherHead))
                     {
                         if (IsAheadOnRightEdgeGoingUp(myHead, otherHead, myNeck, me))
-                        {
                             otherSnakeMove = new() { X = otherHead.X - 1, Y = otherHead.Y };
-                            foundPossibleMove = true;
-                        }
                         else if (IsAheadOnRightEdgeGoingDown(myHead, otherHead, myNeck, me))
-                        {
                             otherSnakeMove = new() { X = otherHead.X + 1, Y = otherHead.Y };
-                            foundPossibleMove = true;
+                        else //Try to predict snake move
+                        {
+                            if (IsMovingDown(other))
+                                otherSnakeMove = new() { X = otherHead.X + 1, Y = otherHead.Y };
+                            else if (IsMovingUp(other))
+                                otherSnakeMove = new() { X = otherHead.X - 1, Y = otherHead.Y };
+                            else if (IsMovingRight(other))
+                            {
+                                if (Util.RollThiftyThiftyChance())
+                                    otherSnakeMove = new() { X = otherHead.X + 1, Y = otherHead.Y };
+                                else
+                                    otherSnakeMove = new() { X = otherHead.X - 1, Y = otherHead.Y };
+                            }
                         }
                     }
                     else if (IsOnLeftEdge(otherHead))
                     {
                         if (IsAheadOnLeftEdgeGoingUp(myHead, otherHead, myNeck, me))
-                        {
                             otherSnakeMove = new() { X = otherHead.X - 1, Y = otherHead.Y };
-                            foundPossibleMove = true;
-                        }
                         else if (IsAheadOnLeftEdgeGoingDown(myHead, otherHead, myNeck, me))
-                        {
                             otherSnakeMove = new() { X = otherHead.X + 1, Y = otherHead.Y };
-                            foundPossibleMove = true;
+                        else //Try to predict snake move
+                        {
+                            if (IsMovingDown(other))
+                                otherSnakeMove = new() { X = otherHead.X + 1, Y = otherHead.Y };
+                            else if (IsMovingUp(other))
+                                otherSnakeMove = new() { X = otherHead.X - 1, Y = otherHead.Y };
+                            else if (IsMovingLeft(other))
+                            {
+                                if (Util.RollThiftyThiftyChance())
+                                    otherSnakeMove = new() { X = otherHead.X + 1, Y = otherHead.Y };
+                                else
+                                    otherSnakeMove = new() { X = otherHead.X - 1, Y = otherHead.Y };
+                            }
                         }
                     }
                     else if (IsOnTopEdge(otherHead))
                     {
                         if (IsAheadOnTopEdgeGoingLeft(myHead, otherHead, myNeck, me))
-                        {
                             otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y - 1 };
-                            foundPossibleMove = true;
-                        }
                         else if (IsAheadOnTopEdgeGoingRight(myHead, otherHead, myNeck, me))
-                        {
                             otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y + 1 };
-                            foundPossibleMove = true;
+                        else //Try to predict snake move
+                        {
+                            if (IsMovingRight(other))
+                                otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y + 1 };
+                            else if (IsMovingLeft(other))
+                                otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y - 1 };
+                            else if (IsMovingUp(other))
+                            {
+                                if (Util.RollThiftyThiftyChance())
+                                    otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y + 1 };
+                                else
+                                    otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y - 1 };
+                            }
                         }
                     }
                     else if (IsOnBottomEdge(otherHead))
                     {
                         if (IsAheadOnBottomEdgeGoingLeft(myHead, otherHead, myNeck, me))
-                        {
                             otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y - 1 };
-                            foundPossibleMove = true;
-                        }
                         else if (IsAheadOnBottomEdgeGoingRight(myHead, otherHead, myNeck, me))
-                        {
                             otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y + 1 };
-                            foundPossibleMove = true;
+                        else //Try to predict snake move
+                        {
+                            if (IsMovingRight(other))
+                                otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y + 1 };
+                            else if (IsMovingLeft(other))
+                                otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y - 1 };
+                            else if (IsMovingDown(other))
+                            {
+                                if (Util.RollThiftyThiftyChance())
+                                    otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y + 1 };
+                                else
+                                    otherSnakeMove = new() { X = otherHead.X, Y = otherHead.Y - 1 };
+                            }
                         }
                     }
 
-                    if (foundPossibleMove)
-                    {
-                        if (!IsInBounds(otherSnakeMove.X, otherSnakeMove.Y)) //Not a valid move
-                            otherSnakeMove = RandomSafeMove(state.Grid, other);
+                    if (!IsInBounds(otherSnakeMove.X, otherSnakeMove.Y)) //Not a valid move
+                        otherSnakeMove = RandomSafeMove(state.Grid, other);
 
-                        int manhattenDistanceToOtherSnake = Util.ManhattenDistance(myHead.X, myHead.Y, otherSnakeMove.X, otherSnakeMove.Y);
-                        int distanceToOtherSnake = Math.Abs(maxDistance - manhattenDistanceToOtherSnake);
-                        aggresionScore = distanceToOtherSnake * HeuristicConstants.AGGRESSION_VALUE;
-                    }
+                    int manhattenDistanceToOtherSnake = Util.ManhattenDistance(myHead.X, myHead.Y, otherSnakeMove.X, otherSnakeMove.Y);
+                    int distanceToOtherSnake = Math.Abs(maxDistance - manhattenDistanceToOtherSnake);
+                    aggresionScore = distanceToOtherSnake * HeuristicConstants.AGGRESSION_VALUE;
                 }
             }
             score += aggresionScore;
@@ -858,23 +890,23 @@ namespace Battlesnake.Algorithm
             return floodFillScore;
         }
 
-        private List<Point> SafeTiles(GameObject[][] grid, Snake me)
+        private List<Point> SafeTiles(GameObject[][] grid, Snake snake)
         {
             List<Point> neighbours = new();
             for (int i = 0; i < _moves.Length; i++)
             {
                 (int x, int y) = _moves[i];
-                int dx = x + me.Head.X, dy = y + me.Head.Y;
+                int dx = x + snake.Head.X, dy = y + snake.Head.Y;
                 if (IsMoveableTileWithTail(grid, dx, dy))
                     neighbours.Add(new Point() { X = dx, Y = dy });
             }
             return neighbours;
         }
 
-        private Point RandomSafeMove(GameObject[][] grid, Snake me)
+        private Point RandomSafeMove(GameObject[][] grid, Snake snake)
         {
-            List<Point> safeTiles = SafeTiles(grid, me);
-            if (safeTiles.Count == 0) return new() { X = Math.Abs(me.Head.X - 1), Y = me.Head.Y }; //Up or down if out of bounds
+            List<Point> safeTiles = SafeTiles(grid, snake);
+            if (safeTiles.Count == 0) return new() { X = Math.Abs(snake.Head.X - 1), Y = snake.Head.Y }; //Up or down if out of bounds
             int index = _rand.Next(0, safeTiles.Count);
             return safeTiles[index];
         }
@@ -960,7 +992,7 @@ namespace Battlesnake.Algorithm
             if (mySnakeDead)
                 score = AdjustForFutureUncertainty(-1000, remainingDepth, maxDepth);
             else if (mySnakeMaybeDead && otherSnakeMaybeDead)
-                score = AdjustForFutureUncertainty(-375, remainingDepth, maxDepth); //Maybe change this value to -250 as it fixed an issue in one game
+                score = AdjustForFutureUncertainty(-375, remainingDepth, maxDepth);
             else if (mySnakeMaybeDead)
                 score = AdjustForFutureUncertainty(-500, remainingDepth, maxDepth);
             else if (otherSnakeMaybeDead)
