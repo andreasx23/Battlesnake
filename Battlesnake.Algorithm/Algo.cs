@@ -306,7 +306,7 @@ namespace Battlesnake.Algorithm
         }
 
         //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
-        //http://people.csail.mit.edu/plaat/mtdf.html#abmem        
+        //http://people.csail.mit.edu/plaat/mtdf.html#abmem
         private readonly ConcurrentDictionary<int, TranspositionValue> _transpositionTable = new();
         private (double score, Direction move) Minimax(State state, Snake me, Snake other, int depth, bool isMaximizingPlayer = true, int myFoodCount = 0, int otherFoodCount = 0, double alpha = double.MinValue, double beta = double.MaxValue)
         {
@@ -376,7 +376,7 @@ namespace Battlesnake.Algorithm
 
                 (int x, int y) = moves[i];
                 int dx = x + currentSnake.Head.X, dy = y + currentSnake.Head.Y;
-                if (IsMoveableTileWithHeadAndTail(state.Grid, dx, dy))
+                if (IsInBounds(dx, dy))
                 {
                     int key = state.Key;
                     //Store values for updating hash
@@ -960,7 +960,7 @@ namespace Battlesnake.Algorithm
             if (mySnakeDead)
                 score = AdjustForFutureUncertainty(-1000, remainingDepth, maxDepth);
             else if (mySnakeMaybeDead && otherSnakeMaybeDead)
-                score = AdjustForFutureUncertainty(-750, remainingDepth, maxDepth); //Maybe change this value to -250 as it fixed an issue in one game
+                score = AdjustForFutureUncertainty(-375, remainingDepth, maxDepth); //Maybe change this value to -250 as it fixed an issue in one game
             else if (mySnakeMaybeDead)
                 score = AdjustForFutureUncertainty(-500, remainingDepth, maxDepth);
             else if (otherSnakeMaybeDead)

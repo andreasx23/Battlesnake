@@ -61,6 +61,51 @@ namespace Battlesnake.Test {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;2451ce27-ecb9-448b-934d-e7a96fe18473&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:136,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:6,&quot;y&quot;:10},{&quot;x&quot;:10,&quot;y&quot;:6},{&quot;x&quot;:1,&quot;y&quot;:1}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_Pbc8dTFKMv9yt4Jb3td4jvwG&quot;,&quot;name&quot;:&quot;BwukMaxi&quot;,&quot;body&quot;:[{&quot;x&quot;:8,&quot;y&quot;:4},{&quot;x&quot;:9,&quot;y&quot;:4},{&quot;x&quot;:9 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string AttemptPossibleCornorTrapLongOpponentPart1 {
+            get {
+                return ResourceManager.GetString("AttemptPossibleCornorTrapLongOpponentPart1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;386747&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;v.1.2.3&quot;},&quot;timeout&quot;:500},&quot;turn&quot;:200,&quot;you&quot;:{&quot;health&quot;:47,&quot;id&quot;:&quot;you&quot;,&quot;name&quot;:&quot;#22aa34&quot;,&quot;body&quot;:[{&quot;x&quot;:8,&quot;y&quot;:5},{&quot;x&quot;:8,&quot;y&quot;:4},{&quot;x&quot;:9,&quot;y&quot;:4},{&quot;x&quot;:9,&quot;y&quot;:3},{&quot;x&quot;:8,&quot;y&quot;:3}],&quot;head&quot;:{&quot;x&quot;:8,&quot;y&quot;:5},&quot;length&quot;:5},&quot;board&quot;:{&quot;food&quot;:[{&quot;x&quot;:6,&quot;y&quot;:10},{&quot;x&quot;:10,&quot;y&quot;:6},{&quot;x&quot;:1,&quot;y&quot;:1}],&quot;height&quot;:11,&quot;width&quot;:11,&quot;snakes&quot;:[{&quot;health&quot;:47,&quot;id&quot;:&quot;you&quot;,&quot;name&quot;:&quot;#22aa34&quot;,&quot;body&quot;:[{&quot;x&quot;:8,&quot;y&quot;:5},{&quot;x&quot;:8,&quot;y&quot;:4},{&quot;x&quot;:9,&quot;y&quot;:4},{&quot;x&quot;:9,&quot;y&quot;:3},{&q....
+        /// </summary>
+        internal static string AttemptPossibleCornorTrapLongOpponentPart2 {
+            get {
+                return ResourceManager.GetString("AttemptPossibleCornorTrapLongOpponentPart2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;0e455601-a8f9-4c50-8da2-2e09a296b827&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:3,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:10,&quot;y&quot;:4},{&quot;x&quot;:4,&quot;y&quot;:0},{&quot;x&quot;:5,&quot;y&quot;:5}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_fXPyPw77vrVgSWMdtXmcq4JT&quot;,&quot;name&quot;:&quot;Epitaph&quot;,&quot;body&quot;:[{&quot;x&quot;:6,&quot;y&quot;:5},{&quot;x&quot;:7,&quot;y&quot;:5},{&quot;x&quot;:8,&quot;y&quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string AvoidHeadToHeadCenterFood {
+            get {
+                return ResourceManager.GetString("AvoidHeadToHeadCenterFood", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;7a27630d-f962-4c15-aed9-f90f8b6a40e1&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:242,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:0,&quot;y&quot;:9},{&quot;x&quot;:2,&quot;y&quot;:8},{&quot;x&quot;:0,&quot;y&quot;:3}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_ywJkWdXjWPjQthD8DrXrfwq6&quot;,&quot;name&quot;:&quot;BwukMaxi&quot;,&quot;body&quot;:[{&quot;x&quot;:0,&quot;y&quot;:2},{&quot;x&quot;:1,&quot;y&quot;:2},{&quot;x&quot;:1,&quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string DontEnterSmallCaves {
+            get {
+                return ResourceManager.GetString("DontEnterSmallCaves", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;5bd77fe8-f544-4c15-999f-cc40f8980395&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:254,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:10,&quot;y&quot;:10},{&quot;x&quot;:0,&quot;y&quot;:8},{&quot;x&quot;:5,&quot;y&quot;:10},{&quot;x&quot;:1,&quot;y&quot;:10},{&quot;x&quot;:4,&quot;y&quot;:7},{&quot;x&quot;:0,&quot;y&quot;:10},{&quot;x&quot;:3,&quot;y&quot;:1}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_YgS7TJGcrdwpQcxGGpr9PdSd&quot;,&quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string DrawIsBetterThanCertainDeath {
+            get {
+                return ResourceManager.GetString("DrawIsBetterThanCertainDeath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;e15136fd-6b08-4d43-8373-9188365d9be3&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:43,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:9,&quot;y&quot;:5},{&quot;x&quot;:1,&quot;y&quot;:0},{&quot;x&quot;:2,&quot;y&quot;:6}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_88mxm64vprBjGjkTFfvRdCyb&quot;,&quot;name&quot;:&quot;BwukMaxi&quot;,&quot;body&quot;:[{&quot;x&quot;:1,&quot;y&quot;:8},{&quot;x&quot;:1,&quot;y&quot;:7},{&quot;x&quot;:1,&quot;y [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string MoveUpAgainstLeftWallForHeadToHead {
@@ -75,6 +120,51 @@ namespace Battlesnake.Test {
         internal static string NoHeadToHead {
             get {
                 return ResourceManager.GetString("NoHeadToHead", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;4356f7dd-1c30-4cfc-8220-990e587f2aac&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:26,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:6,&quot;y&quot;:0},{&quot;x&quot;:10,&quot;y&quot;:1},{&quot;x&quot;:5,&quot;y&quot;:5}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_TXPXH694F4xrYMkqwmwGGvfD&quot;,&quot;name&quot;:&quot;BwukMaxi&quot;,&quot;body&quot;:[{&quot;x&quot;:9,&quot;y&quot;:9},{&quot;x&quot;:9,&quot;y&quot;:8},{&quot;x&quot;:9,&quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string PinUpAgainstWall {
+            get {
+                return ResourceManager.GetString("PinUpAgainstWall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;045f087c-bfc6-4b63-aa6f-97e50c85de06&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:194,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:10,&quot;y&quot;:3},{&quot;x&quot;:1,&quot;y&quot;:0},{&quot;x&quot;:10,&quot;y&quot;:8},{&quot;x&quot;:0,&quot;y&quot;:1},{&quot;x&quot;:3,&quot;y&quot;:9},{&quot;x&quot;:9,&quot;y&quot;:4},{&quot;x&quot;:2,&quot;y&quot;:5},{&quot;x&quot;:0,&quot;y&quot;:0}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_WV6TfWbCD7VhkwY3 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TrapOpponentIntoCavePart1 {
+            get {
+                return ResourceManager.GetString("TrapOpponentIntoCavePart1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;045f087c-bfc6-4b63-aa6f-97e50c85de06&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:195,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:10,&quot;y&quot;:3},{&quot;x&quot;:1,&quot;y&quot;:0},{&quot;x&quot;:10,&quot;y&quot;:8},{&quot;x&quot;:0,&quot;y&quot;:1},{&quot;x&quot;:3,&quot;y&quot;:9},{&quot;x&quot;:9,&quot;y&quot;:4},{&quot;x&quot;:2,&quot;y&quot;:5},{&quot;x&quot;:0,&quot;y&quot;:0}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_WV6TfWbCD7VhkwY3 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TrapOpponentIntoCavePart2 {
+            get {
+                return ResourceManager.GetString("TrapOpponentIntoCavePart2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;045f087c-bfc6-4b63-aa6f-97e50c85de06&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:196,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:10,&quot;y&quot;:3},{&quot;x&quot;:1,&quot;y&quot;:0},{&quot;x&quot;:10,&quot;y&quot;:8},{&quot;x&quot;:0,&quot;y&quot;:1},{&quot;x&quot;:3,&quot;y&quot;:9},{&quot;x&quot;:9,&quot;y&quot;:4},{&quot;x&quot;:2,&quot;y&quot;:5},{&quot;x&quot;:0,&quot;y&quot;:0}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_WV6TfWbCD7VhkwY3 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TrapOpponentIntoCavePart3 {
+            get {
+                return ResourceManager.GetString("TrapOpponentIntoCavePart3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;045f087c-bfc6-4b63-aa6f-97e50c85de06&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:197,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:10,&quot;y&quot;:3},{&quot;x&quot;:1,&quot;y&quot;:0},{&quot;x&quot;:10,&quot;y&quot;:8},{&quot;x&quot;:0,&quot;y&quot;:1},{&quot;x&quot;:3,&quot;y&quot;:9},{&quot;x&quot;:9,&quot;y&quot;:4},{&quot;x&quot;:2,&quot;y&quot;:5},{&quot;x&quot;:0,&quot;y&quot;:0}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_WV6TfWbCD7VhkwY3 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TrapOpponentIntoCavePart4 {
+            get {
+                return ResourceManager.GetString("TrapOpponentIntoCavePart4", resourceCulture);
             }
         }
     }
