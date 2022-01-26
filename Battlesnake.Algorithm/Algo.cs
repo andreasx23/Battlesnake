@@ -364,7 +364,6 @@ namespace Battlesnake.Algorithm
             Snake[] snakes = new Snake[2] { me, other };
             Snake currentSnake = isMaximizingPlayer ? me : other;
             double bestMoveScore = isMaximizingPlayer ? double.MinValue : double.MaxValue;
-            int currentFoodCount = isMaximizingPlayer ? myFoodCount : otherFoodCount;
             for (int i = 0; i < moves.Length; i++) //For loop because it's faster in runtime
             {
                 if (IsTimeoutThresholdReached) //Halt possible new entries
@@ -389,16 +388,18 @@ namespace Battlesnake.Algorithm
                     int prevLength = currentSnake.Length;
                     currentSnake.Health -= _game.Game.Ruleset.Settings.HazardDamagePerTurn;
                     bool isFoodTile = IsFoodTile(state.Grid, dx, dy);
+                    int currentFoodCount = isMaximizingPlayer ? myFoodCount : otherFoodCount;
                     if (isFoodTile)
                     {
                         Snake temp = !isMaximizingPlayer ? me : other;
-                        if (dx != temp.Head.X && dy != temp.Head.Y || dx != temp.Head.X && dy == temp.Head.Y || dx == temp.Head.X && dy != temp.Head.Y || currentSnake.Length > temp.Length)
+                        if (dx != temp.Head.X || dy != temp.Head.Y || currentSnake.Length > temp.Length)
                         {
                             currentSnake.Length++;
                             currentSnake.Health = HeuristicConstants.MAX_HEALTH;
                             currentFoodCount++;
                         }
                     }
+
                     //Move the snake
                     state.MoveSnakeForward(currentSnake, x, y, isFoodTile);
                     state.UpdateSnakesToGrid(snakes);
@@ -408,14 +409,14 @@ namespace Battlesnake.Algorithm
                     state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
                     //Execute minimax
                     (double score, Direction move) = Minimax(state: state,
-                                                                    me: isMaximizingPlayer ? currentSnake : me,
-                                                                    other: !isMaximizingPlayer ? currentSnake : other,
-                                                                    depth: depth - 1,
-                                                                    isMaximizingPlayer: !isMaximizingPlayer,
-                                                                    myFoodCount: isMaximizingPlayer ? currentFoodCount : myFoodCount,
-                                                                    otherFoodCount: !isMaximizingPlayer ? currentFoodCount : otherFoodCount,
-                                                                    alpha: alpha,
-                                                                    beta: beta);
+                                                                me: isMaximizingPlayer ? currentSnake : me,
+                                                                other: !isMaximizingPlayer ? currentSnake : other,
+                                                                depth: depth - 1,
+                                                                isMaximizingPlayer: !isMaximizingPlayer,
+                                                                myFoodCount: isMaximizingPlayer ? currentFoodCount : myFoodCount,
+                                                                otherFoodCount: !isMaximizingPlayer ? currentFoodCount : otherFoodCount,
+                                                                alpha: alpha,
+                                                                beta: beta);
                     if (!IsTimeoutThresholdReached) //Only clear if timeout is not reached
                     {
                         //Move the snake back
