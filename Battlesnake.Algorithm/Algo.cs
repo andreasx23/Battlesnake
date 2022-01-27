@@ -180,7 +180,7 @@ namespace Battlesnake.Algorithm
             State stateClone = _state.DeepClone();
             Snake meClone = me.Clone();
             Snake otherClone = other.Clone();
-            (double score, Direction move) = Minimax(stateClone, meClone, otherClone, stateClone.MAX_DEPTH);
+            (double score, Direction move) = MinimaxWAlphaBeta(stateClone, meClone, otherClone, stateClone.MAX_DEPTH);
             if (Util.IsDebug) WriteDebugMessage($"Best score from minimax: {score} -- move to perform: {move}");
             return move;
         }
@@ -213,7 +213,7 @@ namespace Battlesnake.Algorithm
                 }
 
                 stateClone.MAX_DEPTH = depth;
-                (double score, Direction move) = Minimax(stateClone, meClone, otherClone, depth);
+                (double score, Direction move) = MinimaxWAlphaBeta(stateClone, meClone, otherClone, depth);
 
                 if (_searchCutOff)
                     break;
@@ -269,7 +269,7 @@ namespace Battlesnake.Algorithm
                      * 
                      * https://stackoverflow.com/questions/70303310/why-does-increasing-the-hash-table-size-for-a-chess-engine-also-drastically-inc
                      */
-                    (double score, Direction move) = Minimax(StateClone, meClone, otherClone, StateClone.MAX_DEPTH);
+                    (double score, Direction move) = MinimaxWAlphaBeta(StateClone, meClone, otherClone, StateClone.MAX_DEPTH);
 
                     if (_searchCutOff)
                         break;
@@ -308,7 +308,7 @@ namespace Battlesnake.Algorithm
         //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
         //http://people.csail.mit.edu/plaat/mtdf.html#abmem
         private readonly ConcurrentDictionary<int, TranspositionValue> _transpositionTable = new();
-        private (double score, Direction move) Minimax(State state, Snake me, Snake other, int depth, bool isMaximizingPlayer = true, int myFoodCount = 0, int otherFoodCount = 0, double alpha = double.MinValue, double beta = double.MaxValue)
+        private (double score, Direction move) MinimaxWAlphaBeta(State state, Snake me, Snake other, int depth, GameObject maximizerDestinationTile = GameObject.FLOOR, bool isMaximizingPlayer = true, int myFoodCount = 0, int otherFoodCount = 0, double alpha = double.MinValue, double beta = double.MaxValue)
         {
             if (IsTimeoutThresholdReached)
             {
@@ -377,7 +377,6 @@ namespace Battlesnake.Algorithm
                 int dx = x + currentSnake.Head.X, dy = y + currentSnake.Head.Y;
                 if (IsInBounds(dx, dy))
                 {
-                    int key = state.Key;
                     //Store values for updating hash
                     Point oldHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
                     Point oldNeck = new() { X = currentSnake.Body[1].X, Y = currentSnake.Body[1].Y };
@@ -399,7 +398,14 @@ namespace Battlesnake.Algorithm
                             currentFoodCount++;
                         }
                     }
-
+                    else if (!isMaximizingPlayer && maximizerDestinationTile == GameObject.FOOD && dx == me.Head.X && dy == me.Head.Y) //To handle case where maximizer eats a food from the same tile before minimizer gets to it
+                    {
+                        currentSnake.Length++;
+                        currentSnake.Health = HeuristicConstants.MAX_HEALTH;
+                        currentFoodCount++;
+                        isFoodTile = true;
+                        destinationTile = maximizerDestinationTile;
+                    }
                     //Move the snake
                     state.MoveSnakeForward(currentSnake, x, y, isFoodTile);
                     state.UpdateSnakesToGrid(snakes);
@@ -408,10 +414,11 @@ namespace Battlesnake.Algorithm
                     Point newTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
                     state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
                     //Execute minimax
-                    (double score, Direction move) = Minimax(state: state,
+                    (double score, Direction move) = MinimaxWAlphaBeta(state: state,
                                                                 me: isMaximizingPlayer ? currentSnake : me,
                                                                 other: !isMaximizingPlayer ? currentSnake : other,
                                                                 depth: depth - 1,
+                                                                maximizerDestinationTile: destinationTile,
                                                                 isMaximizingPlayer: !isMaximizingPlayer,
                                                                 myFoodCount: isMaximizingPlayer ? currentFoodCount : myFoodCount,
                                                                 otherFoodCount: !isMaximizingPlayer ? currentFoodCount : otherFoodCount,
@@ -427,7 +434,6 @@ namespace Battlesnake.Algorithm
                         currentSnake.Length = prevLength;
                         //Revert changes made to the key
                         state.Key = ZobristHash.Instance.UpdateKeyBackward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
-                        Debug.Assert(key == state.Key);
                     }
 
                     if (isMaximizingPlayer)
