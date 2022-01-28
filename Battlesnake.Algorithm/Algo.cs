@@ -43,7 +43,6 @@ namespace Battlesnake.Algorithm
             (-1, 0) //Up
         };
         private readonly Stopwatch _watch;
-        //private bool IsTimeoutThresholdReached => _watch.Elapsed >= TimeSpan.FromMilliseconds(_game.Game.Timeout - (_game.Turn > 0 && _game.Turn % 100 == 0 ? 150 : 75)); //Quick hack to handle turn 100 strange reset
         private bool IsTimeoutThresholdReached => _watch.Elapsed >= TimeSpan.FromMilliseconds(_game.Game.Timeout - 75);
         private readonly State _state;
         private double _hit = 0d, _noHit = 0d, _goodHit = 0d;
@@ -347,6 +346,7 @@ namespace Battlesnake.Algorithm
             else if (Util.IsDebug)
                 _noHit++;
 
+
             if (depth == 0)
             {
                 double evaluatedState = EvaluateState(state, me, other, depth, myFoodCount, otherFoodCount);
@@ -456,7 +456,7 @@ namespace Battlesnake.Algorithm
                         }
                         beta = Math.Min(beta, score);
                     }
-                    //if (beta <= alpha) break;
+                    if (beta <= alpha) break;
                 }
             }
 
@@ -771,14 +771,25 @@ namespace Battlesnake.Algorithm
                     ownedFoodDistance = FindClosestFoodDistanceUsingBFS(state.Grid, myHead);
                     if (ownedFoodDistance == -1)
                     {
+                        //Fallback to manhatten distance
                         Point myClosestFood = FindClosestFoodUsingManhattenDistance(availableFoods, myHead);
                         ownedFoodDistance = Util.ManhattenDistance(myHead.X, myHead.Y, myClosestFood.X, myClosestFood.Y);
                     }
                 }
+
                 if (me.Health - 3 < ownedFoodDistance) //Minus 3 to give 3 ekstra turns to reach food
                     return -10000d;
+
                 double rope = me.Health - ownedFoodDistance;
                 myFoodScore += HeuristicConstants.MY_FOOD_VALUE * Math.Atan(rope / HeuristicConstants.ATAN_VALUE);
+
+                if (myLength < otherLength + 2)
+                {
+                    if (myFoodCount > 0)
+                        myFoodScore += HeuristicConstants.MY_FOOD_VALUE * myFoodCount;
+                    else
+                        myFoodScore += Math.Pow((maxDistance - ownedFoodDistance) / 4, 2);
+                }
             }
             score += myFoodScore;
 
@@ -794,14 +805,25 @@ namespace Battlesnake.Algorithm
                     ownedFoodDistance = FindClosestFoodDistanceUsingBFS(state.Grid, otherHead);
                     if (ownedFoodDistance == -1)
                     {
+                        //Fallback to manhatten distance
                         Point otherClosestFood = FindClosestFoodUsingManhattenDistance(availableFoods, otherHead);
                         ownedFoodDistance = Util.ManhattenDistance(otherHead.X, otherHead.Y, otherClosestFood.X, otherClosestFood.Y);
                     }
                 }
+
                 if (other.Health - 3 < ownedFoodDistance) //Minus 3 to give 3 ekstra turns to reach food
                     return 10000d;
+
                 double rope = other.Health - ownedFoodDistance;
-                theirFoodScore += HeuristicConstants.OTHER_FOOD_VALUE * Math.Atan(rope / HeuristicConstants.ATAN_VALUE);
+                theirFoodScore -= HeuristicConstants.OTHER_FOOD_VALUE * Math.Atan(rope / HeuristicConstants.ATAN_VALUE);
+
+                if (otherLength < myLength + 2)
+                {
+                    if (otherFoodCount > 0)
+                        theirFoodScore -= HeuristicConstants.OTHER_FOOD_VALUE * otherFoodCount;
+                    else
+                        theirFoodScore += Math.Pow((maxDistance - ownedFoodDistance) / 4, 2);
+                }
             }
             score += theirFoodScore;
 
