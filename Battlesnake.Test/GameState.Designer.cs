@@ -151,6 +151,15 @@ namespace Battlesnake.Test {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;85912a8c-e62a-47ab-9231-67b438239d9c&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:226,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:0,&quot;y&quot;:5},{&quot;x&quot;:0,&quot;y&quot;:10},{&quot;x&quot;:1,&quot;y&quot;:7},{&quot;x&quot;:1,&quot;y&quot;:4},{&quot;x&quot;:0,&quot;y&quot;:4},{&quot;x&quot;:3,&quot;y&quot;:0},{&quot;x&quot;:6,&quot;y&quot;:3}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_Dt3wyB4qkGYv4Ycvx3mvfyP8&quot;,&quot;name [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string OnlyApplyEatMoveOnNextTurn {
+            get {
+                return ResourceManager.GetString("OnlyApplyEatMoveOnNextTurn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;4356f7dd-1c30-4cfc-8220-990e587f2aac&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:26,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:6,&quot;y&quot;:0},{&quot;x&quot;:10,&quot;y&quot;:1},{&quot;x&quot;:5,&quot;y&quot;:5}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_TXPXH694F4xrYMkqwmwGGvfD&quot;,&quot;name&quot;:&quot;BwukMaxi&quot;,&quot;body&quot;:[{&quot;x&quot;:9,&quot;y&quot;:9},{&quot;x&quot;:9,&quot;y&quot;:8},{&quot;x&quot;:9,&quot; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string PinUpAgainstWall {

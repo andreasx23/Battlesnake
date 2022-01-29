@@ -155,5 +155,15 @@ namespace Battlesnake.Test
             Direction move = alg.CalculateNextMove(state.You);
             Assert.True(move == Direction.RIGHT);
         }
+
+        [Fact]
+        public void OnlyApplyEatMoveOnNextTurn()
+        {
+            string json = GameState.OnlyApplyEatMoveOnNextTurn;
+            GameStatusDTO state = DeserializeGameStatusDTO(json);
+            Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
+            Direction move = alg.CalculateNextMove(state.You);
+            Assert.True(move == Direction.LEFT);
+        }
     }
 }
