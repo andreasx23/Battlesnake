@@ -402,7 +402,7 @@ namespace Battlesnake.Algorithm
                             currentFoodCount++;
                         }
                     }
-                    else if (!isMaximizingPlayer && hasMaximizerEaten && dx == me.Head.X && dy == me.Head.Y) //To handle case where maximizer eats a food from the same tile before minimizer gets to it
+                    else if (!isMaximizingPlayer && hasMaximizerEaten && dx == me.Head.X && dy == me.Head.Y && currentSnake.Length + 1 >= me.Length) //To handle case where maximizer eats a food from the same tile before minimizer gets to it
                     {
                         currentSnake.Length++;
                         currentSnake.Health = HeuristicConstants.MAX_HEALTH;
@@ -412,7 +412,7 @@ namespace Battlesnake.Algorithm
                     }
                     //Move the snake
                     state.MoveSnakeForward(currentSnake, x, y, hasCurrentSnakeEaten);
-                    state.UpdateSnakesToGrid(snakes);
+                    state.DrawSnakesToGrid(snakes);
                     //Store values for updating hash
                     Point newHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
                     Point newTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
@@ -433,7 +433,7 @@ namespace Battlesnake.Algorithm
                     {
                         //Move the snake back
                         state.MoveSnakeBackward(currentSnake, oldTail, hasCurrentSnakeEaten, destinationTile);
-                        state.UpdateSnakesToGrid(snakes);
+                        state.DrawSnakesToGrid(snakes);
                         //Revert changes made doing previous state
                         currentSnake.Health = prevHp;
                         currentSnake.Length = prevLength;
