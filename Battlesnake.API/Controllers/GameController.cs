@@ -58,7 +58,7 @@ namespace Battlesnake.API.Controllers
             Direction currentDir = _map[(id, game.You.Name)];
 
             Algo algo = new(game, currentDir, watch);
-            Direction newDir = algo.CalculateNextMove(game.You);
+            Direction newDir = algo.CalculateNextMove();
             _map[(id, game.You.Name)] = newDir;
 
             //_logger.LogInformation($"{Util.LogPrefix(id)} Previous direction: {currentDir} -- New direction: {newDir}");

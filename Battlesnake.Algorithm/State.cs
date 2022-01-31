@@ -30,9 +30,9 @@ namespace Battlesnake.Algorithm
             MAX_DEPTH = maxDepth;
         }
 
-        public void DrawSnakesToGrid(Snake[] snakes)
+        public void DrawSnakesToGrid(List<Snake> snakes)
         {
-            for (int i = 0; i < snakes.Length; i++)
+            for (int i = 0; i < snakes.Count; i++)
             {
                 Snake snake = snakes[i];
                 int n = snake.Body.Count;

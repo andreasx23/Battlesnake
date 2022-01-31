@@ -22,7 +22,7 @@ namespace Battlesnake.Test
             string json = GameState.NoHeadToHead;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move != Direction.LEFT);
         }
 
@@ -32,7 +32,7 @@ namespace Battlesnake.Test
             string json = GameState.MoveUpAgainstLeftWallForHeadToHead;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move == Direction.UP);
         }
 
@@ -42,7 +42,7 @@ namespace Battlesnake.Test
             string json = GameState.PinUpAgainstWall;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move == Direction.LEFT);
         }
 
@@ -52,7 +52,7 @@ namespace Battlesnake.Test
             string json = GameState.AvoidHeadToHeadCenterFood;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move != Direction.UP);
         }
 
@@ -62,7 +62,7 @@ namespace Battlesnake.Test
             string json = GameState.DontEnterSmallCaves;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move != Direction.DOWN);
         }
 
@@ -72,22 +72,22 @@ namespace Battlesnake.Test
             string json = GameState.TrapOpponentIntoCavePart1;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move == Direction.RIGHT);
             json = GameState.TrapOpponentIntoCavePart2;
             state = DeserializeGameStatusDTO(json);
             alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            move = alg.CalculateNextMove(state.You);
+            move = alg.CalculateNextMove();
             Assert.True(move == Direction.RIGHT);
             json = GameState.TrapOpponentIntoCavePart3;
             state = DeserializeGameStatusDTO(json);
             alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            move = alg.CalculateNextMove(state.You);
+            move = alg.CalculateNextMove();
             Assert.True(move == Direction.RIGHT);
             json = GameState.TrapOpponentIntoCavePart4;
             state = DeserializeGameStatusDTO(json);
             alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            move = alg.CalculateNextMove(state.You);
+            move = alg.CalculateNextMove();
             Assert.True(move == Direction.RIGHT);
         }
 
@@ -97,12 +97,12 @@ namespace Battlesnake.Test
             string json = GameState.AttemptPossibleCornorTrapLongOpponentPart1;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move == Direction.UP);
             json = GameState.AttemptPossibleCornorTrapLongOpponentPart2;
             state = DeserializeGameStatusDTO(json);
             alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            move = alg.CalculateNextMove(state.You);
+            move = alg.CalculateNextMove();
             Assert.True(move == Direction.RIGHT);
         }
 
@@ -112,7 +112,7 @@ namespace Battlesnake.Test
             string json = GameState.DrawIsBetterThanCertainDeath;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move == Direction.LEFT);
         }
 
@@ -122,7 +122,7 @@ namespace Battlesnake.Test
             string json = GameState.EatYoureHungryOneHpLeft;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move == Direction.DOWN);
         }
 
@@ -132,7 +132,7 @@ namespace Battlesnake.Test
             string json = GameState.PreferDrawWhenHungryEvenWithOneHpLeft;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move == Direction.DOWN);
         }
 
@@ -142,7 +142,7 @@ namespace Battlesnake.Test
             string json = GameState.NeverRunIntoYourSelf;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move == Direction.LEFT);
         }
 
@@ -152,7 +152,7 @@ namespace Battlesnake.Test
             string json = GameState.NeverRunIntoWalls;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move == Direction.RIGHT);
         }
 
@@ -162,7 +162,7 @@ namespace Battlesnake.Test
             string json = GameState.OnlyApplyEatMoveOnNextTurn;
             GameStatusDTO state = DeserializeGameStatusDTO(json);
             Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
-            Direction move = alg.CalculateNextMove(state.You);
+            Direction move = alg.CalculateNextMove();
             Assert.True(move == Direction.LEFT);
         }
     }
