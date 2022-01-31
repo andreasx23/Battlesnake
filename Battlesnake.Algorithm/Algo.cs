@@ -211,12 +211,10 @@ namespace Battlesnake.Algorithm
 
                 bestScore = score;
                 bestMove = move;
-
+                depth += amountOfSnakes;
                 prevHit = _hit;
                 prevNoHit = _noHit;
                 prevGoodHit = _goodHit;
-
-                depth += amountOfSnakes;
             }
 
             if (Util.IsDebug)
