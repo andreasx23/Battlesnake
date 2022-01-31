@@ -75,7 +75,8 @@ namespace Battlesnake.Algorithm
         {
             try
             {
-                Direction iterativeDeepening = ParallelIterativeDeepening();
+                //Direction iterativeDeepening = MaxNParallelIterativeDeepening();
+                Direction iterativeDeepening = MaxNIterativeDeepening();
                 if (iterativeDeepening != Direction.NO_MOVE)
                 {
                     _dir = iterativeDeepening;
@@ -96,76 +97,139 @@ namespace Battlesnake.Algorithm
         }
 
         #region Mini max with alpha beta pruning
-        //private Direction Minimax(Snake me, Snake other)
-        //{
-        //    if (Util.IsDebug) Print();
-        //    State stateClone = _state.DeepClone();
-        //    Snake meClone = me.Clone();
-        //    Snake otherClone = other.Clone();
-        //    (double score, Direction move) = MinimaxWAlphaBeta(stateClone, meClone, otherClone, stateClone.MAX_DEPTH);
-        //    if (Util.IsDebug) WriteDebugMessage($"Best score from minimax: {score} -- move to perform: {move}");
-        //    return move;
-        //}
+        private Direction Minimax(Snake me, Snake other)
+        {
+            if (Util.IsDebug) Print();
+            State stateClone = _state.DeepClone();
+            Snake meClone = me.Clone();
+            Snake otherClone = other.Clone();
+            (double score, Direction move) = MinimaxWithAlphaBeta(stateClone, meClone, otherClone, stateClone.MAX_DEPTH);
+            if (Util.IsDebug) WriteDebugMessage($"Best score from minimax: {score} -- move to perform: {move}");
+            return move;
+        }
 
-        ////https://github.com/nealyoung/CS171/blob/master/AI.java
-        ////https://stackoverflow.com/questions/41756443/how-to-implement-iterative-deepening-with-alpha-beta-pruning
-        ////https://stackoverflow.com/questions/16235923/alpha-beta-search-iterative-deepening-refutation-table?rq=1
-        ////https://stackoverflow.com/questions/29990116/alpha-beta-prunning-with-transposition-table-iterative-deepening?rq=1
-        ////https://stackoverflow.com/questions/27606175/can-a-transposition-table-cause-search-instability?noredirect=1&lq=1
-        //private Direction IterativeDeepening(Snake me, Snake other)
-        //{
-        //    if (Util.IsDebug) Print();
-        //    State stateClone = _state.DeepClone();
-        //    Snake meClone = me.Clone();
-        //    Snake otherClone = other.Clone();
+        //https://github.com/nealyoung/CS171/blob/master/AI.java
+        //https://stackoverflow.com/questions/41756443/how-to-implement-iterative-deepening-with-alpha-beta-pruning
+        //https://stackoverflow.com/questions/16235923/alpha-beta-search-iterative-deepening-refutation-table?rq=1
+        //https://stackoverflow.com/questions/29990116/alpha-beta-prunning-with-transposition-table-iterative-deepening?rq=1
+        //https://stackoverflow.com/questions/27606175/can-a-transposition-table-cause-search-instability?noredirect=1&lq=1
+        private Direction MinimaxIterativeDeepening(Snake me, Snake other)
+        {
+            if (Util.IsDebug) Print();
+            State stateClone = _state.DeepClone();
+            Snake meClone = me.Clone();
+            Snake otherClone = other.Clone();
 
-        //    double bestScore = double.MinValue;
-        //    Direction bestMove = Direction.NO_MOVE;
-        //    int depth = 4;
-        //    double prevHit = _hit;
-        //    double prevNoHit = _noHit;
-        //    double prevGoodHit = _goodHit;
-        //    while (true)
-        //    {
-        //        if (IsTimeoutThresholdReached)
-        //        {
-        //            depth -= 2;
-        //            break;
-        //        }
+            double bestScore = double.MinValue;
+            Direction bestMove = Direction.NO_MOVE;
+            int depth = 4;
+            double prevHit = _hit;
+            double prevNoHit = _noHit;
+            double prevGoodHit = _goodHit;
+            while (true)
+            {
+                if (IsTimeoutThresholdReached)
+                {
+                    depth -= 2;
+                    break;
+                }
 
-        //        stateClone.MAX_DEPTH = depth;
-        //        (double score, Direction move) = MinimaxWAlphaBeta(stateClone, meClone, otherClone, depth);
+                stateClone.MAX_DEPTH = depth;
+                (double score, Direction move) = MinimaxWithAlphaBeta(stateClone, meClone, otherClone, depth);
 
-        //        if (_searchCutOff)
-        //            break;
+                if (_searchCutOff)
+                    break;
 
-        //        if (Util.IsDebug)
-        //            Debug.WriteLine(score + " " + move + " " + depth);
+                if (Util.IsDebug)
+                    Debug.WriteLine(score + " " + move + " " + depth);
 
-        //        bestScore = score;
-        //        bestMove = move;
+                bestScore = score;
+                bestMove = move;
 
-        //        prevHit = _hit;
-        //        prevNoHit = _noHit;
-        //        prevGoodHit = _goodHit;
+                prevHit = _hit;
+                prevNoHit = _noHit;
+                prevGoodHit = _goodHit;
 
-        //        if (depth == 4)
-        //            break;
+                if (depth == 4)
+                    break;
 
-        //        depth += 2;
-        //    }
+                depth += 2;
+            }
 
-        //    if (Util.IsDebug)
-        //    {
-        //        double total = prevHit + prevNoHit + prevGoodHit;
-        //        WriteDebugMessage($"No hit: {prevNoHit} + hit: {prevHit} + good hit: {prevGoodHit} = Total: {total} -- Hit procentage: {prevHit / total * 100} Good hit procentage: {prevGoodHit / total * 100} Total success procentage: {(prevHit + prevGoodHit) / total * 100}");
-        //        Debug.WriteLine($"Depth searched to: {depth}, a score of: {bestScore} with move: {bestMove}");
-        //    }
+            if (Util.IsDebug)
+            {
+                double total = prevHit + prevNoHit + prevGoodHit;
+                WriteDebugMessage($"No hit: {prevNoHit} + hit: {prevHit} + good hit: {prevGoodHit} = Total: {total} -- Hit procentage: {prevHit / total * 100} Good hit procentage: {prevGoodHit / total * 100} Total success procentage: {(prevHit + prevGoodHit) / total * 100}");
+                Debug.WriteLine($"Depth searched to: {depth}, a score of: {bestScore} with move: {bestMove}");
+            }
 
-        //    return bestMove;
-        //}
+            return bestMove;
+        }
 
-        private Direction ParallelIterativeDeepening()
+        private Direction MaxNIterativeDeepening()
+        {
+            if (Util.IsDebug) Print();
+            State stateClone = _state.DeepClone();
+
+            int amountOfSnakes = _game.Board.Snakes.Count;
+            List<Snake> snakes = new();
+            List<bool> hasSnakeEaten = new();
+            List<int> foodCounts = new();
+            for (int i = 0; i < amountOfSnakes; i++)
+            {
+                Snake snake = _game.Board.Snakes[i].Clone();
+                if (snake.Id == _game.You.Id)
+                    snakes.Insert(0, snake);
+                else
+                    snakes.Add(snake);
+                hasSnakeEaten.Add(false);
+                foodCounts.Add(0);
+            }
+
+            double bestScore = double.MinValue;
+            Direction bestMove = Direction.NO_MOVE;
+            int depth = amountOfSnakes;
+            double prevHit = _hit;
+            double prevNoHit = _noHit;
+            double prevGoodHit = _goodHit;
+            while (true)
+            {
+                if (IsTimeoutThresholdReached || stateClone.MAX_DEPTH > 50)
+                    break;
+
+                stateClone.MAX_DEPTH = depth;
+                List<bool> hasSnakeEatenTemp = new(hasSnakeEaten);
+                List<int> foodCountsTemp = new(foodCounts);
+
+                (double score, Direction move) = MaxNWithAlphaBeta(stateClone, snakes, stateClone.MAX_DEPTH, hasSnakeEatenTemp, foodCountsTemp);
+
+                if (_searchCutOff)
+                    break;
+
+                if (Util.IsDebug)
+                    Debug.WriteLine(score + " " + move + " " + depth);
+
+                bestScore = score;
+                bestMove = move;
+
+                prevHit = _hit;
+                prevNoHit = _noHit;
+                prevGoodHit = _goodHit;
+
+                depth += amountOfSnakes;
+            }
+
+            if (Util.IsDebug)
+            {
+                double total = prevHit + prevNoHit + prevGoodHit;
+                WriteDebugMessage($"No hit: {prevNoHit} + hit: {prevHit} + good hit: {prevGoodHit} = Total: {total} -- Hit procentage: {prevHit / total * 100} Good hit procentage: {prevGoodHit / total * 100} Total success procentage: {(prevHit + prevGoodHit) / total * 100}");
+                WriteDebugMessage($"Depth searched to: {depth}, a score of: {bestScore} with move: {bestMove}");
+            }
+
+            return bestMove;
+        }
+
+        private Direction MaxNParallelIterativeDeepening()
         {
             if (Util.IsDebug)
                 Print();
@@ -184,11 +248,11 @@ namespace Battlesnake.Algorithm
                 List<int> foodCounts = new();
                 for (int j = 0; j < amountOfSnakes; j++)
                 {
-                    Snake s = _game.Board.Snakes[j];
-                    if (s.Id == _game.You.Id)
-                        snakes.Insert(0, s.Clone());
+                    Snake snake = _game.Board.Snakes[j].Clone();
+                    if (snake.Id == _game.You.Id)
+                        snakes.Insert(0, snake);
                     else
-                        snakes.Add(s.Clone());
+                        snakes.Add(snake);
                     hasSnakeEaten.Add(false);
                     foodCounts.Add(0);
                 }
@@ -206,8 +270,7 @@ namespace Battlesnake.Algorithm
                      * 
                      * https://stackoverflow.com/questions/70303310/why-does-increasing-the-hash-table-size-for-a-chess-engine-also-drastically-inc
                      */
-                    //(double score, Direction move) = MinimaxWAlphaBeta(StateClone, meClone, otherClone, StateClone.MAX_DEPTH);
-                    (double score, Direction move) = MaxNWithAlphaBeta(StateClone, snakes, 0, StateClone.MAX_DEPTH, hasSnakeEatenTemp, foodCountsTemp);
+                    (double score, Direction move) = MaxNWithAlphaBeta(StateClone, snakes, StateClone.MAX_DEPTH, hasSnakeEatenTemp, foodCountsTemp);
 
                     if (_searchCutOff)
                         break;
@@ -246,8 +309,7 @@ namespace Battlesnake.Algorithm
         //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
         //http://people.csail.mit.edu/plaat/mtdf.html#abmem
         private readonly ConcurrentDictionary<int, TranspositionValue> _transpositionTable = new();
-        //private (double score, Direction move) MinimaxWAlphaBeta(State state, Snake me, Snake other, int depth, bool isMaximizingPlayer = true, double alpha = double.MinValue, double beta = double.MaxValue, bool hasMaximizerEaten = false, bool hasMinimizerEaten = false, int myFoodCount = 0, int otherFoodCount = 0)
-        private (double score, Direction move) MaxNWithAlphaBeta(State state, List<Snake> snakes, int index, int depth, List<bool> hasSnakeEaten, List<int> foodCounts, double alpha = double.MinValue, double beta = double.MaxValue)
+        private (double score, Direction move) MaxNWithAlphaBeta(State state, List<Snake> snakes, int depth, List<bool> hasSnakesEaten, List<int> foodCounts, int index = 0, double alpha = double.MinValue, double beta = double.MaxValue)
         {
             if (IsTimeoutThresholdReached)
             {
@@ -329,7 +391,7 @@ namespace Battlesnake.Algorithm
 
             Direction bestMove = Direction.NO_MOVE;
             int moveIndex = 0;
-            bool hasCurrentSnakeEaten = hasSnakeEaten[index];
+            bool hasCurrentSnakeEaten = hasSnakesEaten[index];
             double bestMoveScore = isMaximizer ? double.MinValue : double.MaxValue;
             for (int i = 0; i < moves.Length; i++) //For loop because it's faster in runtime
             {
@@ -369,12 +431,12 @@ namespace Battlesnake.Algorithm
                             currentFoodCount++;
                         }
                     }
-                    else if (hasSnakeEaten.Any(s => s)) //To handle case where other snake eats a food from the same tile before current snake gets to it
+                    else if (hasSnakesEaten.Any(s => s)) //To handle case where other snake eats a food from the same tile before current snake gets to it
                     {
                         for (int j = 0; j < snakes.Count; j++)
                         {
                             Snake other = snakes[j];
-                            if (currentSnake.Id != other.Id && hasSnakeEaten[j] && dx == other.Head.X && dy == other.Head.Y && currentSnake.Length + 1 >= other.Length)
+                            if (j != index && hasSnakesEaten[j] && dx == other.Head.X && dy == other.Head.Y && currentSnake.Length + 1 >= other.Length)
                             {
                                 currentSnake.Length++;
                                 currentSnake.Health = HeuristicConstants.MAX_HEALTH;
@@ -393,19 +455,30 @@ namespace Battlesnake.Algorithm
                     Point newTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
                     state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
                     //Update list of which snake has eaten and how big of a food count they have
-                    List<bool> currentHasSnakeEaten = new(hasSnakeEaten);
-                    currentHasSnakeEaten[index] = isFoodTile;
-                    List<int> currentFoodCounts = new(foodCounts);
-                    currentFoodCounts[index] = currentFoodCount;
+                    List<bool> currentHasSnakesEaten = new();
+                    List<int> currentFoodCounts = new();
+                    for (int j = 0; j < snakes.Count; j++)
+                    {
+                        if (j == index)
+                        {
+                            currentHasSnakesEaten.Add(isFoodTile);
+                            currentFoodCounts.Add(currentFoodCount);
+                        }
+                        else
+                        {
+                            currentHasSnakesEaten.Add(hasSnakesEaten[j]);
+                            currentFoodCounts.Add(foodCounts[j]);
+                        }
+                    }
                     //Execute minimax
                     (double score, Direction move) = MaxNWithAlphaBeta(state: state,
-                                                                snakes: snakes,
-                                                                index: (index + 1) % snakes.Count,
-                                                                depth: depth - 1,
-                                                                hasSnakeEaten: currentHasSnakeEaten,
-                                                                foodCounts: currentFoodCounts,
-                                                                alpha: alpha,
-                                                                beta: beta);
+                                                                      snakes: snakes,
+                                                                      depth: depth - 1,
+                                                                      hasSnakesEaten: currentHasSnakesEaten,
+                                                                      foodCounts: currentFoodCounts,
+                                                                      index: (index + 1) % snakes.Count,
+                                                                      alpha: alpha,
+                                                                      beta: beta);
                     if (!IsTimeoutThresholdReached) //Only clear if timeout is not reached
                     {
                         //Move the snake back
@@ -423,6 +496,178 @@ namespace Battlesnake.Algorithm
                     }
 
                     if (isMaximizer)
+                    {
+                        if (score > bestMoveScore)
+                        {
+                            bestMoveScore = score;
+                            bestMove = GetMove(x, y);
+                            moveIndex = i;
+                        }
+                        alpha = Math.Max(alpha, score);
+                    }
+                    else
+                    {
+                        if (score < bestMoveScore)
+                        {
+                            bestMoveScore = score;
+                            bestMove = GetMove(x, y);
+                            moveIndex = i;
+                        }
+                        beta = Math.Min(beta, score);
+                    }
+                    if (beta <= alpha) break;
+                }
+            }
+
+            double lowerBound = double.MinValue, upperbound = double.MaxValue;
+            if (bestMoveScore <= alpha) upperbound = bestMoveScore;
+            if (bestMoveScore > alpha && bestMoveScore < beta)
+            {
+                upperbound = bestMoveScore;
+                lowerBound = bestMoveScore;
+            }
+            if (bestMoveScore >= beta) lowerBound = bestMoveScore;
+            _transpositionTable.TryAdd(state.Key, new() { Move = bestMove, MoveIndex = moveIndex, Depth = depth, LowerBound = lowerBound, UpperBound = upperbound });
+
+            return (bestMoveScore, bestMove);
+        }
+
+        private (double score, Direction move) MinimaxWithAlphaBeta(State state, Snake me, Snake other, int depth, bool isMaximizingPlayer = true, double alpha = double.MinValue, double beta = double.MaxValue, bool hasMaximizerEaten = false, bool hasMinimizerEaten = false, int myFoodCount = 0, int otherFoodCount = 0)
+        {
+            if (IsTimeoutThresholdReached)
+            {
+                _searchCutOff = true;
+                if (Util.IsDebug) WriteDebugMessage($"THRESHOLD! {_watch.Elapsed}");
+                return (0, Direction.NO_MOVE);
+            }
+
+            (int x, int y)[] moves = new (int x, int y)[4]
+            {
+                (0, -1), //Left
+                (1, 0), //Down
+                (0, 1), //Right
+                (-1, 0) //Up
+            };
+            if (_transpositionTable.TryGetValue(state.Key, out TranspositionValue value))
+            {
+                if (value.Depth >= depth)
+                {
+                    if (value.LowerBound >= beta)
+                    {
+                        if (Util.IsDebug) _goodHit++;
+                        return (value.LowerBound, value.Move);
+                    }
+                    else if (value.UpperBound <= alpha)
+                    {
+                        if (Util.IsDebug) _goodHit++;
+                        return (value.UpperBound, value.Move);
+                    }
+                }
+                if (Util.IsDebug) _hit++;
+                (int x, int y) temp = moves[0];
+                moves[0] = moves[value.MoveIndex];
+                moves[value.MoveIndex] = temp;
+            }
+            else if (Util.IsDebug)
+                _noHit++;
+
+
+            if (depth == 0)
+            {
+                double evaluatedState = EvaluateState(state, me, other, depth, myFoodCount, otherFoodCount);
+                return (evaluatedState, Direction.NO_MOVE);
+            }
+
+            if (isMaximizingPlayer) //Only evaluate if game is over when it's my turn because it takes two depths for a turn
+            {
+                (double score, bool isGameOver) = EvaluateIfGameIsOver(me, other, depth, state.MAX_DEPTH);
+                if (isGameOver) return (score, Direction.NO_MOVE);
+            }
+
+            Direction bestMove = Direction.NO_MOVE;
+            int moveIndex = 0;
+            List<Snake> snakes = new() { me, other };
+            Snake currentSnake = isMaximizingPlayer ? me : other;
+            bool hasCurrentSnakeEaten = isMaximizingPlayer ? hasMaximizerEaten : hasMinimizerEaten;
+            double bestMoveScore = isMaximizingPlayer ? double.MinValue : double.MaxValue;
+            for (int i = 0; i < moves.Length; i++) //For loop because it's faster in runtime
+            {
+                if (IsTimeoutThresholdReached) //Halt possible new entries
+                {
+                    _searchCutOff = true;
+                    if (Util.IsDebug) WriteDebugMessage($"THRESHOLD! {_watch.Elapsed}");
+                    return (0, Direction.NO_MOVE);
+                }
+
+                (int x, int y) = moves[i];
+                int dx = x + currentSnake.Head.X, dy = y + currentSnake.Head.Y;
+                if (IsInBounds(dx, dy))
+                {
+                    //int key = state.Key;
+                    //var clone = state.DeepCloneGrid();
+                    //Store values for updating hash
+                    Point oldHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
+                    Point oldNeck = new() { X = currentSnake.Body[1].X, Y = currentSnake.Body[1].Y };
+                    Point oldTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
+                    //Change state of the game
+                    GameObject destinationTile = state.Grid[dx][dy];
+                    int prevHp = currentSnake.Health;
+                    int prevLength = currentSnake.Length;
+                    currentSnake.Health -= _game.Game.Ruleset.Settings.HazardDamagePerTurn;
+                    bool isFoodTile = IsFoodTile(state.Grid, dx, dy);
+                    int currentFoodCount = isMaximizingPlayer ? myFoodCount : otherFoodCount;
+                    if (isFoodTile)
+                    {
+                        Snake temp = !isMaximizingPlayer ? me : other;
+                        if (dx != temp.Head.X || dy != temp.Head.Y || currentSnake.Length > temp.Length)
+                        {
+                            currentSnake.Length++;
+                            currentSnake.Health = HeuristicConstants.MAX_HEALTH;
+                            currentFoodCount++;
+                        }
+                    }
+                    else if (!isMaximizingPlayer && hasMaximizerEaten && dx == me.Head.X && dy == me.Head.Y && currentSnake.Length + 1 >= me.Length) //To handle case where maximizer eats a food from the same tile before minimizer gets to it
+                    {
+                        currentSnake.Length++;
+                        currentSnake.Health = HeuristicConstants.MAX_HEALTH;
+                        currentFoodCount++;
+                        isFoodTile = true;
+                        destinationTile = GameObject.FOOD;
+                    }
+                    //Move the snake
+                    state.MoveSnakeForward(currentSnake, x, y, hasCurrentSnakeEaten);
+                    state.DrawSnakesToGrid(snakes);
+                    //Store values for updating hash
+                    Point newHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
+                    Point newTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
+                    state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
+                    //Execute minimax
+                    (double score, Direction move) = MinimaxWithAlphaBeta(state: state,
+                                                                me: isMaximizingPlayer ? currentSnake : me,
+                                                                other: !isMaximizingPlayer ? currentSnake : other,
+                                                                depth: depth - 1,
+                                                                isMaximizingPlayer: !isMaximizingPlayer,
+                                                                alpha: alpha,
+                                                                beta: beta,
+                                                                hasMaximizerEaten: isMaximizingPlayer ? isFoodTile : hasMaximizerEaten,
+                                                                hasMinimizerEaten: !isMaximizingPlayer ? isFoodTile : hasMinimizerEaten,
+                                                                myFoodCount: isMaximizingPlayer ? currentFoodCount : myFoodCount,
+                                                                otherFoodCount: !isMaximizingPlayer ? currentFoodCount : otherFoodCount);
+                    if (!IsTimeoutThresholdReached) //Only clear if timeout is not reached
+                    {
+                        //Move the snake back
+                        state.MoveSnakeBackward(currentSnake, oldTail, hasCurrentSnakeEaten, destinationTile);
+                        state.DrawSnakesToGrid(snakes);
+                        //Revert changes made doing previous state
+                        currentSnake.Health = prevHp;
+                        currentSnake.Length = prevLength;
+                        //Revert changes made to the key
+                        state.Key = ZobristHash.Instance.UpdateKeyBackward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
+                        //Debug.Assert(state.IsGridSame(clone));
+                        //Debug.Assert(state.Key == key);
+                    }
+
+                    if (isMaximizingPlayer)
                     {
                         if (score > bestMoveScore)
                         {
