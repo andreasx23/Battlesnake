@@ -26,17 +26,26 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="GameState.Designer.cs">
+    <Compile Update="GameStateArena.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>GameState.resx</DependentUpon>
+      <DependentUpon>GameStateArena.resx</DependentUpon>
+    </Compile>
+    <Compile Update="GameStateDuel.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GameStateDuel.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="GameState.resx">
+    <EmbeddedResource Update="GameStateArena.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>GameState.Designer.cs</LastGenOutput>
+      <LastGenOutput>GameStateArena.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="GameStateDuel.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>GameStateDuel.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
