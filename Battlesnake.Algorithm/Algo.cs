@@ -304,25 +304,6 @@ namespace Battlesnake.Algorithm
             return bestMove;
         }
 
-        private (Snake other, int otherIndex) FindClosestSnake(List<Snake> snakes)
-        {
-            Snake me = snakes[0];
-            int otherIndex = 0, currentMin = int.MaxValue;
-            Snake other = null;
-            for (int i = 1; i < snakes.Count; i++) //Start at one so we skip ourselves
-            {
-                Snake snake = snakes[i];
-                int min = Util.ManhattenDistance(snake.Head.X, snake.Head.Y, me.Head.X, me.Head.Y);
-                if (currentMin > min)
-                {
-                    currentMin = min;
-                    otherIndex = i;
-                    other = snake;
-                }
-            }
-            return (other, otherIndex);
-        }
-
         //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
         //http://people.csail.mit.edu/plaat/mtdf.html#abmem
         private readonly ConcurrentDictionary<int, TranspositionValue> _transpositionTable = new();
@@ -748,7 +729,7 @@ namespace Battlesnake.Algorithm
             //Set variables
             int h = state.Grid.Length, w = state.Grid.First().Length;
             Snake me = snakes[0];
-            (Snake other, int otherIndex) = FindClosestSnake(snakes);
+            (Snake other, int otherIndex) = FindClosestSnakeUsingManhattanDistanceToHead(snakes);
             int myFoodCount = foodsCounts[0];
             int otherFoodCount = foodsCounts[otherIndex];
             double score = 0d;
@@ -1098,6 +1079,25 @@ namespace Battlesnake.Algorithm
                                                        head.Y == 2 && head.X >= 2 && head.X <= 8 || //Left center
                                                        head.Y == 8 && head.X >= 2 && head.X <= 8;   //Right center
 
+        private (Snake other, int otherIndex) FindClosestSnakeUsingManhattanDistanceToHead(List<Snake> snakes)
+        {
+            Snake me = snakes[0];
+            int otherIndex = 0, currentMin = int.MaxValue;
+            Snake other = null;
+            for (int i = 1; i < snakes.Count; i++) //Start at one so we skip ourselves
+            {
+                Snake snake = snakes[i];
+                int min = Util.ManhattenDistance(snake.Head.X, snake.Head.Y, me.Head.X, me.Head.Y);
+                if (currentMin > min)
+                {
+                    currentMin = min;
+                    otherIndex = i;
+                    other = snake;
+                }
+            }
+            return (other, otherIndex);
+        }
+
         private (double distance, Point corner) FindClosestCorner(Point head)
         {
             int h = _grid.Length - 1, w = _grid.First().Length - 1;
@@ -1168,7 +1168,7 @@ namespace Battlesnake.Algorithm
         private (double score, bool isGameOver) EvaluateIfGameIsOver(List<Snake> snakes, int remainingDepth, int maxDepth)
         {
             Snake me = snakes[0];
-            (Snake other, int otherIndex) = FindClosestSnake(snakes);
+            (Snake other, int otherIndex) = FindClosestSnakeUsingManhattanDistanceToHead(snakes);
             Point myHead = me.Head;
             Point otherHead = other.Head;
             bool mySnakeDead = false;
@@ -1256,7 +1256,8 @@ namespace Battlesnake.Algorithm
             score += remainingDepth;
 
             bool isGameOver = false;
-            if (mySnakeDead || otherSnakeDead || mySnakeMaybeDead || otherSnakeMaybeDead) isGameOver = true;
+            if (mySnakeDead || otherSnakeDead || mySnakeMaybeDead || otherSnakeMaybeDead) 
+                isGameOver = true;
 
             return (score, isGameOver);
         }
