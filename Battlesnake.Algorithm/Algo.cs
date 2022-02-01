@@ -43,7 +43,7 @@ namespace Battlesnake.Algorithm
             (-1, 0) //Up
         };
         private readonly Stopwatch _watch;
-        private bool IsTimeoutThresholdReached => _watch.Elapsed >= TimeSpan.FromMilliseconds(_game.Game.Timeout - 75);
+        private bool IsTimeoutThresholdReached => _watch.Elapsed >= TimeSpan.FromMilliseconds(_game.Game.Timeout - 80);
         private readonly State _state;
         private double _hit = 0d, _noHit = 0d, _goodHit = 0d;
         private bool _searchCutOff = false;
@@ -304,6 +304,25 @@ namespace Battlesnake.Algorithm
             return bestMove;
         }
 
+        private (Snake other, int otherIndex) FindClosestSnake(List<Snake> snakes)
+        {
+            Snake me = snakes[0];
+            int otherIndex = 0, currentMin = int.MaxValue;
+            Snake other = null;
+            for (int i = 1; i < snakes.Count; i++) //Start at one so we skip ourselves
+            {
+                Snake snake = snakes[i];
+                int min = Util.ManhattenDistance(snake.Head.X, snake.Head.Y, me.Head.X, me.Head.Y);
+                if (currentMin > min)
+                {
+                    currentMin = min;
+                    otherIndex = i;
+                    other = snake;
+                }
+            }
+            return (other, otherIndex);
+        }
+
         //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
         //http://people.csail.mit.edu/plaat/mtdf.html#abmem
         private readonly ConcurrentDictionary<int, TranspositionValue> _transpositionTable = new();
@@ -346,49 +365,22 @@ namespace Battlesnake.Algorithm
             else if (Util.IsDebug)
                 _noHit++;
 
-            Snake currentSnake = snakes[index];
             if (depth == 0)
             {
-                int otherIndex = 0, currentMin = int.MaxValue;
-                Snake other = null;
-                for (int i = 1; i < snakes.Count; i++) //Start at one so we skip ourselves
-                {
-                    Snake snake = snakes[i];
-                    int min = Util.ManhattenDistance(snake.Head.X, snake.Head.Y, currentSnake.Head.X, currentSnake.Head.Y);
-                    if (currentMin > min)
-                    {
-                        currentMin = min;
-                        otherIndex = index;
-                        other = snake;
-                    }
-                }
-                int myFoodCount = foodCounts[0];
-                int otherFoodCount = foodCounts[otherIndex];
-                double evaluatedState = EvaluateState(state, currentSnake, other, depth, myFoodCount, otherFoodCount);
+                double evaluatedState = EvaluateState(state, snakes, foodCounts);
                 return (evaluatedState, Direction.NO_MOVE);
             }
 
             bool isMaximizer = index == 0;
             if (isMaximizer) //Only evaluate if game is over when it's my turn because it takes snake count depths for a turn
             {
-                int currentMin = int.MaxValue;
-                Snake other = null;
-                for (int i = 1; i < snakes.Count; i++) //Start at one so we skip ourselves
-                {
-                    Snake snake = snakes[i];
-                    int min = Util.ManhattenDistance(snake.Head.X, snake.Head.Y, currentSnake.Head.X, currentSnake.Head.Y);
-                    if (currentMin > min)
-                    {
-                        currentMin = min;
-                        other = snake;
-                    }
-                }
-                (double score, bool isGameOver) = EvaluateIfGameIsOver(currentSnake, other, depth, state.MAX_DEPTH);
+                (double score, bool isGameOver) = EvaluateIfGameIsOver(snakes, depth, state.MAX_DEPTH);
                 if (isGameOver) return (score, Direction.NO_MOVE);
             }
 
             Direction bestMove = Direction.NO_MOVE;
             int moveIndex = 0;
+            Snake currentSnake = snakes[index];
             bool hasCurrentSnakeEaten = hasSnakesEaten[index];
             double bestMoveScore = isMaximizer ? double.MinValue : double.MaxValue;
             for (int i = 0; i < moves.Length; i++) //For loop because it's faster in runtime
@@ -569,22 +561,21 @@ namespace Battlesnake.Algorithm
             else if (Util.IsDebug)
                 _noHit++;
 
-
+            List<Snake> snakes = new() { me, other };
             if (depth == 0)
             {
-                double evaluatedState = EvaluateState(state, me, other, depth, myFoodCount, otherFoodCount);
+                double evaluatedState = EvaluateState(state, snakes, new() { myFoodCount, otherFoodCount });
                 return (evaluatedState, Direction.NO_MOVE);
             }
 
             if (isMaximizingPlayer) //Only evaluate if game is over when it's my turn because it takes two depths for a turn
             {
-                (double score, bool isGameOver) = EvaluateIfGameIsOver(me, other, depth, state.MAX_DEPTH);
+                (double score, bool isGameOver) = EvaluateIfGameIsOver(snakes, depth, state.MAX_DEPTH);
                 if (isGameOver) return (score, Direction.NO_MOVE);
             }
 
             Direction bestMove = Direction.NO_MOVE;
-            int moveIndex = 0;
-            List<Snake> snakes = new() { me, other };
+            int moveIndex = 0;            
             Snake currentSnake = isMaximizingPlayer ? me : other;
             bool hasCurrentSnakeEaten = isMaximizingPlayer ? hasMaximizerEaten : hasMinimizerEaten;
             double bestMoveScore = isMaximizingPlayer ? double.MinValue : double.MaxValue;
@@ -747,9 +738,19 @@ namespace Battlesnake.Algorithm
         private static bool IsMovingUp(Snake snake) => snake.Head.X + 1 == snake.Body[1].X;
         private static bool IsMovingDown(Snake snake) => snake.Head.X - 1 == snake.Body[1].X;
 
-        private double EvaluateState(State state, Snake me, Snake other, int remainingDepth, int myFoodCount, int otherFoodCount)
+        private double EvaluateState(State state, List<Snake> snakes, List<int> foodsCounts)
         {
+            //----- Is game over -----
+            (double score, bool isGameOver) evaluateIfGameIsOver = EvaluateIfGameIsOver(snakes, 0, state.MAX_DEPTH);
+            if (evaluateIfGameIsOver.isGameOver)
+                return evaluateIfGameIsOver.score;
+
+            //Set variables
             int h = state.Grid.Length, w = state.Grid.First().Length;
+            Snake me = snakes[0];
+            (Snake other, int otherIndex) = FindClosestSnake(snakes);
+            int myFoodCount = foodsCounts[0];
+            int otherFoodCount = foodsCounts[otherIndex];
             double score = 0d;
             Point myHead = me.Head;
             Point otherHead = other.Head;
@@ -757,11 +758,6 @@ namespace Battlesnake.Algorithm
             int otherLength = other.Length;
             int maxDistance = h + w;
             List<Point> availableFoods = GetFoodFromGrid(state.Grid);
-
-            //----- Is game over -----
-            (double score, bool isGameOver) evaluateIfGameIsOver = EvaluateIfGameIsOver(me, other, remainingDepth, state.MAX_DEPTH);
-            if (evaluateIfGameIsOver.isGameOver)
-                return evaluateIfGameIsOver.score;
 
             //----- Aggresion -----
             double aggresionScore = 0d;
@@ -1169,8 +1165,10 @@ namespace Battlesnake.Algorithm
             return safeTiles[index];
         }
 
-        private (double score, bool isGameOver) EvaluateIfGameIsOver(Snake me, Snake other, int remainingDepth, int maxDepth)
+        private (double score, bool isGameOver) EvaluateIfGameIsOver(List<Snake> snakes, int remainingDepth, int maxDepth)
         {
+            Snake me = snakes[0];
+            (Snake other, int otherIndex) = FindClosestSnake(snakes);
             Point myHead = me.Head;
             Point otherHead = other.Head;
             bool mySnakeDead = false;
@@ -1208,24 +1206,18 @@ namespace Battlesnake.Algorithm
             int mySnakeHeadOnCount = 0, otherSnakeHeadOnCount = 0;
             if (_game.Turn != 0)
             {
-                for (int i = 0; i < me.Body.Count; i++)
+                for (int i = 0; i < snakes.Count; i++)
                 {
-                    Point body = me.Body[i];
-                    if (body.X == myHead.X && body.Y == myHead.Y)
-                        mySnakeHeadOnCount++;
+                    Snake current = snakes[i];
+                    for (int j = 0; j < current.Body.Count; j++)
+                    {
+                        Point body = current.Body[j];
+                        if (body.X == myHead.X && body.Y == myHead.Y)
+                            mySnakeHeadOnCount++;
 
-                    if (body.X == otherHead.X && body.Y == otherHead.Y)
-                        otherSnakeHeadOnCount++;
-                }
-
-                for (int i = 0; i < other.Body.Count; i++)
-                {
-                    Point body = other.Body[i];
-                    if (body.X == myHead.X && body.Y == myHead.Y)
-                        mySnakeHeadOnCount++;
-
-                    if (body.X == otherHead.X && body.Y == otherHead.Y)
-                        otherSnakeHeadOnCount++;
+                        if (body.X == otherHead.X && body.Y == otherHead.Y) //Maybe wrap this in a if where we only apply body hit when they are either in their own body or mine
+                            otherSnakeHeadOnCount++;
+                    }
                 }
             }
 
