@@ -75,33 +75,25 @@ namespace Battlesnake.Algorithm
 
         public Direction CalculateNextMove()
         {
-            Direction iterativeDeepening = MaxNIterativeDeepening();
-            if (iterativeDeepening != Direction.NO_MOVE)
+            try
             {
-                _dir = iterativeDeepening;
-                return _dir;
+                //Direction iterativeDeepening = MaxNParallelIterativeDeepening();
+                Direction iterativeDeepening = MaxNIterativeDeepening();
+                if (iterativeDeepening != Direction.NO_MOVE)
+                {
+                    _dir = iterativeDeepening;
+                    return _dir;
+                }
+                _dir = BestAdjacentFloodFill(_game.You);
             }
-            _dir = BestAdjacentFloodFill(_game.You);
-
-            //try
-            //{
-            //    //Direction iterativeDeepening = MaxNParallelIterativeDeepening();
-            //    Direction iterativeDeepening = MaxNIterativeDeepening();
-            //    if (iterativeDeepening != Direction.NO_MOVE)
-            //    {
-            //        _dir = iterativeDeepening;
-            //        return _dir;
-            //    }
-            //    _dir = BestAdjacentFloodFill(_game.You);
-            //}
-            //catch (Exception e)
-            //{
-            //    if (Util.IsDebug) WriteDebugMessage(e.Message);
-            //}
-            //finally
-            //{
-            //    if (Util.IsDebug) WriteDebugMessage($"Run time took: {_watch.Elapsed} -- next direction: {_dir}");
-            //}
+            catch (Exception e)
+            {
+                if (Util.IsDebug) WriteDebugMessage(e.Message);
+            }
+            finally
+            {
+                if (Util.IsDebug) WriteDebugMessage($"Run time took: {_watch.Elapsed} -- next direction: {_dir}");
+            }
 
             return _dir;
         }
