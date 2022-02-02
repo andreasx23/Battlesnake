@@ -1,4 +1,5 @@
 ﻿using Battlesnake.Enum;
+using Battlesnake.Model;
 using System;
 using System.Diagnostics;
 
@@ -44,6 +45,15 @@ namespace Battlesnake.Utility
             Console.WriteLine($"Elo difference: {eloDiffernece}");
             double los = 0.5d + 0.5d * Erf((wins - losses) / Math.Sqrt(2.0d * (wins + losses)));
             Console.WriteLine($"LOS: {los}");
+        }
+
+        public static Point WrapHeadCoordinates(int height, int width, int x, int y)
+        {
+            int dx = x % height;
+            if (dx < 0) dx = height - 1;
+            int dy = y % width;
+            if (dy < 0) dy = width - 1;
+            return new() { X = dx, Y = dy };
         }
 
         /// <summary>

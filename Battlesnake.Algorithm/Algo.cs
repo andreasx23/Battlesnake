@@ -47,6 +47,7 @@ namespace Battlesnake.Algorithm
         private readonly State _state;
         private double _hit = 0d, _noHit = 0d, _goodHit = 0d;
         private bool _searchCutOff = false;
+        private readonly GameMode _gameMode = GameMode.NORMAL;
 
         public Algo(GameStatusDTO game, Direction dir, Stopwatch watch)
         {
@@ -59,6 +60,7 @@ namespace Battlesnake.Algorithm
             _grid = GenerateGrid();
             ZobristHash.InitZobristHash(game.Board.Height, game.Board.Width);
             _state = new State(_grid);
+            _gameMode = game.Game.Ruleset.Name.ToLower() == "wrapped" ? GameMode.WRAPPED : GameMode.NORMAL;
         }
 
         public Algo(GameStatusDTO game, GameObject[][] grid)
@@ -73,25 +75,33 @@ namespace Battlesnake.Algorithm
 
         public Direction CalculateNextMove()
         {
-            try
+            Direction iterativeDeepening = MaxNIterativeDeepening();
+            if (iterativeDeepening != Direction.NO_MOVE)
             {
-                //Direction iterativeDeepening = MaxNParallelIterativeDeepening();
-                Direction iterativeDeepening = MaxNIterativeDeepening();
-                if (iterativeDeepening != Direction.NO_MOVE)
-                {
-                    _dir = iterativeDeepening;
-                    return _dir;
-                }
-                _dir = BestAdjacentFloodFill(_game.You);
+                _dir = iterativeDeepening;
+                return _dir;
             }
-            catch (Exception e)
-            {
-                if (Util.IsDebug) WriteDebugMessage(e.Message);
-            }
-            finally
-            {
-                if (Util.IsDebug) WriteDebugMessage($"Run time took: {_watch.Elapsed} -- next direction: {_dir}");
-            }
+            _dir = BestAdjacentFloodFill(_game.You);
+
+            //try
+            //{
+            //    //Direction iterativeDeepening = MaxNParallelIterativeDeepening();
+            //    Direction iterativeDeepening = MaxNIterativeDeepening();
+            //    if (iterativeDeepening != Direction.NO_MOVE)
+            //    {
+            //        _dir = iterativeDeepening;
+            //        return _dir;
+            //    }
+            //    _dir = BestAdjacentFloodFill(_game.You);
+            //}
+            //catch (Exception e)
+            //{
+            //    if (Util.IsDebug) WriteDebugMessage(e.Message);
+            //}
+            //finally
+            //{
+            //    if (Util.IsDebug) WriteDebugMessage($"Run time took: {_watch.Elapsed} -- next direction: {_dir}");
+            //}
 
             return _dir;
         }
@@ -375,12 +385,19 @@ namespace Battlesnake.Algorithm
 
                 (int x, int y) = moves[i];
                 int dx = x + currentSnake.Head.X, dy = y + currentSnake.Head.Y;
+
+                if (_gameMode == GameMode.WRAPPED)
+                {
+                    Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                    dx = temp.X;
+                    dy = temp.Y;
+                }
+
                 if (IsInBounds(dx, dy))
                 {
-#if DEBUG
-                    int key = state.Key;
-                    var clone = state.DeepCloneGrid();
-#endif
+                    //var key = state.Key;
+                    //var clone = state.DeepCloneGrid();
+
                     //Store values for updating hash
                     Point oldHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
                     Point oldNeck = new() { X = currentSnake.Body[1].X, Y = currentSnake.Body[1].Y };
@@ -419,7 +436,7 @@ namespace Battlesnake.Algorithm
                         }
                     }
                     //Move the snake
-                    state.MoveSnakeForward(currentSnake, x, y, hasCurrentSnakeEaten);
+                    state.MoveSnakeForward(currentSnake, dx, dy, hasCurrentSnakeEaten);
                     state.DrawSnakesToGrid(snakes);
                     //Store values for updating hash
                     Point newHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
@@ -430,16 +447,8 @@ namespace Battlesnake.Algorithm
                     List<int> currentFoodCounts = new();
                     for (int j = 0; j < snakes.Count; j++)
                     {
-                        if (j == index)
-                        {
-                            currentHasSnakesEaten.Add(isFoodTile);
-                            currentFoodCounts.Add(currentFoodCount);
-                        }
-                        else
-                        {
-                            currentHasSnakesEaten.Add(hasSnakesEaten[j]);
-                            currentFoodCounts.Add(foodCounts[j]);
-                        }
+                        currentHasSnakesEaten.Add(j == index ? isFoodTile : hasSnakesEaten[j]);
+                        currentFoodCounts.Add(j == index ? currentFoodCount : foodCounts[j]);
                     }
                     //Execute minimax
                     (double score, Direction move) = MaxNWithAlphaBeta(state: state,
@@ -460,10 +469,9 @@ namespace Battlesnake.Algorithm
                         currentSnake.Length = prevLength;
                         //Revert changes made to the key
                         state.Key = ZobristHash.Instance.UpdateKeyBackward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
-#if DEBUG
-                        Debug.Assert(state.IsGridSame(clone));
-                        Debug.Assert(state.Key == key);
-#endif
+
+                        //Debug.Assert(state.IsGridSame(clone));
+                        //Debug.Assert(state.Key == key);
                     }
 
                     if (isMaximizer)
@@ -784,6 +792,17 @@ namespace Battlesnake.Algorithm
                     {
                         Point possibleMove1 = new() { X = otherHead.X + 1, Y = otherHead.Y };
                         Point possibleMove2 = new() { X = otherHead.X - 1, Y = otherHead.Y };
+
+                        if (_gameMode == GameMode.WRAPPED)
+                        {
+                            Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, possibleMove1.X, possibleMove1.Y);
+                            possibleMove1.X = temp.X;
+                            possibleMove1.Y = temp.Y;
+                            temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, possibleMove2.X, possibleMove2.Y);
+                            possibleMove2.X = temp.X;
+                            possibleMove2.Y = temp.Y;
+                        }
+
                         if (IsInBounds(possibleMove1.X, possibleMove1.Y) && IsInBounds(possibleMove2.X, possibleMove2.Y))
                         {
                             Point closestFoodMove1 = FindClosestFoodUsingManhattenDistance(availableFoods, possibleMove1);
@@ -800,6 +819,17 @@ namespace Battlesnake.Algorithm
                     {
                         Point possibleMove1 = new() { X = otherHead.X, Y = otherHead.Y + 1 };
                         Point possibleMove2 = new() { X = otherHead.X, Y = otherHead.Y - 1 };
+
+                        if (_gameMode == GameMode.WRAPPED)
+                        {
+                            Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, possibleMove1.X, possibleMove1.Y);
+                            possibleMove1.X = temp.X;
+                            possibleMove1.Y = temp.Y;
+                            temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, possibleMove2.X, possibleMove2.Y);
+                            possibleMove2.X = temp.X;
+                            possibleMove2.Y = temp.Y;
+                        }
+
                         if (IsInBounds(possibleMove1.X, possibleMove1.Y) && IsInBounds(possibleMove2.X, possibleMove2.Y))
                         {
                             Point closestFoodMove1 = FindClosestFoodUsingManhattenDistance(availableFoods, possibleMove1);
@@ -852,6 +882,13 @@ namespace Battlesnake.Algorithm
                         otherSnakeMove = new() { X = otherHead.X + 1, Y = otherHead.Y };
                     else if (IsMovingLeft(other))
                         otherSnakeMove = new() { X = otherHead.X - 1, Y = otherHead.Y };
+                }
+
+                if (_gameMode == GameMode.WRAPPED)
+                {
+                    Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, otherSnakeMove.X, otherSnakeMove.Y);
+                    otherSnakeMove.X = temp.X;
+                    otherSnakeMove.Y = temp.Y;
                 }
 
                 if (!IsInBounds(otherSnakeMove.X, otherSnakeMove.Y)) //Not a valid move
@@ -953,6 +990,13 @@ namespace Battlesnake.Algorithm
                         }
                     }
 
+                    if (_gameMode == GameMode.WRAPPED)
+                    {
+                        Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, otherSnakeMove.X, otherSnakeMove.Y);
+                        otherSnakeMove.X = temp.X;
+                        otherSnakeMove.Y = temp.Y;
+                    }
+
                     if (!IsInBounds(otherSnakeMove.X, otherSnakeMove.Y)) //Not a valid move
                         otherSnakeMove = RandomSafeMove(state.Grid, other);
 
@@ -964,7 +1008,7 @@ namespace Battlesnake.Algorithm
             score += aggresionScore;
 
             //----- Voronoi & Food -----
-            (int score, int ownedFoodDepth)[] voronoi = VoronoiAlgorithm.VoronoiStateHeuristic(state.Grid, me, other);
+            (int score, int ownedFoodDepth)[] voronoi = VoronoiAlgorithm.VoronoiStateHeuristic(state.Grid, _gameMode, me, other);
             (int score, int ownedFoodDepth) myVoronoi = voronoi[0];
             score += myVoronoi.score * HeuristicConstants.VORONOI_VALUE;
 
@@ -1278,6 +1322,14 @@ namespace Battlesnake.Algorithm
             foreach (var (x, y) in _dirs.Keys)
             {
                 int dx = me.Head.X + x, dy = me.Head.Y + y;
+
+                if (_gameMode == GameMode.WRAPPED)
+                {
+                    Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                    dx = temp.X;
+                    dy = temp.Y;
+                }
+
                 if (IsMoveableTile(dx, dy))
                 {
                     int score = FloodFillWithLimit(_grid, new() { X = dx, Y = dy }, me.Length);
@@ -1301,6 +1353,14 @@ namespace Battlesnake.Algorithm
             {
                 (int x, int y) = _moves[i];
                 int dx = head.X + x, dy = head.Y + y;
+
+                if (_gameMode == GameMode.WRAPPED)
+                {
+                    Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                    dx = temp.X;
+                    dy = temp.Y;
+                }
+
                 if (IsMoveableTile(dx, dy))
                 {
                     int score = FloodFillWithLimit(grid, new() { X = dx, Y = dy }, limit);
@@ -1329,6 +1389,14 @@ namespace Battlesnake.Algorithm
                 {
                     (int x, int y) dir = _moves[i];
                     int dx = dir.x + x, dy = dir.y + y;
+
+                    if (_gameMode == GameMode.WRAPPED)
+                    {
+                        Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                        dx = temp.X;
+                        dy = temp.Y;
+                    }
+
                     if (IsMoveableTile(grid, dx, dy) && !isVisited[dx, dy])
                     {
                         queue.Enqueue((dx, dy));
@@ -1403,6 +1471,14 @@ namespace Battlesnake.Algorithm
             {
                 (int x, int y) move = _moves[i];
                 int dx = move.x + x, dy = move.y + y;
+
+                if (_gameMode == GameMode.WRAPPED)
+                {
+                    Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                    dx = temp.X;
+                    dy = temp.Y;
+                }
+
                 if (IsMoveableTile(grid, dx, dy))
                     neighbours.Add((dx, dy));
             }

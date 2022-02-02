@@ -27,10 +27,12 @@ namespace Battlesnake.Algorithm
             (-1, 0) //Up
         };
         private static GameObject[][] _grid;
+        private static GameMode _gameMode;
         private const int FRIENDLY = 1;
         private const int ENEMY = 2;
         private const int ARTICULATION = 3;
         private const int INF = 10001;
+
         private static int[,] Dijkstra(int[,] state, int[,] dists, Snake snake)
         {
             int h = _grid.Length, w = _grid.First().Length;
@@ -161,9 +163,10 @@ namespace Battlesnake.Algorithm
             return voronoi;
         }
 
-        public static (int score, int ownedFoodDepth)[] VoronoiStateHeuristic(GameObject[][] grid, Snake player, Snake opponent)
+        public static (int score, int ownedFoodDepth)[] VoronoiStateHeuristic(GameObject[][] grid, GameMode gameMode, Snake player, Snake opponent)
         {
             _grid = grid;
+            _gameMode = gameMode;
             return GameStateVoronoi(player, opponent);
         }
 
@@ -265,6 +268,14 @@ namespace Battlesnake.Algorithm
             {
                 (int x, int y) move = _moves[i];
                 int dx = move.x + x, dy = move.y + y;
+
+                if (_gameMode == GameMode.WRAPPED)
+                {
+                    Point temp = Util.WrapHeadCoordinates(_grid.Length, _grid.First().Length, dx, dy);
+                    dx = temp.X;
+                    dy = temp.Y;
+                }
+
                 if (IsValid(dx, dy))
                     neighbours.Add((dx, dy));
             }

@@ -62,7 +62,7 @@ namespace Battlesnake.Algorithm
 
         public void MoveSnakeForward(Snake current, int x, int y, bool isFoodTile)
         {
-            Point newHead = new() { X = current.Head.X + x, Y = current.Head.Y + y };
+            Point newHead = new() { X = x, Y = y };
             Grid[current.Head.X][current.Head.Y] = GameObject.BODY;
             current.Body.Insert(0, new() { X = newHead.X, Y = newHead.Y });
             current.Head = new() { X = newHead.X, Y = newHead.Y };
