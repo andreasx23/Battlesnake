@@ -271,7 +271,7 @@ namespace Battlesnake.Algorithm
 
                 if (_gameMode == GameMode.WRAPPED)
                 {
-                    Point temp = Util.WrapHeadCoordinates(_grid.Length, _grid.First().Length, dx, dy);
+                    Point temp = Util.WrapPointCoordinates(_grid.Length, _grid.First().Length, dx, dy);
                     dx = temp.X;
                     dy = temp.Y;
                 }

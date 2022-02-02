@@ -47,7 +47,7 @@ namespace Battlesnake.Utility
             Console.WriteLine($"LOS: {los}");
         }
 
-        public static Point WrapHeadCoordinates(int height, int width, int x, int y)
+        public static Point WrapPointCoordinates(int height, int width, int x, int y)
         {
             int dx = x % height;
             if (dx < 0) dx = height - 1;

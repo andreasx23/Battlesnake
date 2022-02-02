@@ -388,7 +388,7 @@ namespace Battlesnake.Algorithm
 
                 if (_gameMode == GameMode.WRAPPED)
                 {
-                    Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                    Point temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
                     dx = temp.X;
                     dy = temp.Y;
                 }
@@ -795,10 +795,10 @@ namespace Battlesnake.Algorithm
 
                         if (_gameMode == GameMode.WRAPPED)
                         {
-                            Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, possibleMove1.X, possibleMove1.Y);
+                            Point temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, possibleMove1.X, possibleMove1.Y);
                             possibleMove1.X = temp.X;
                             possibleMove1.Y = temp.Y;
-                            temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, possibleMove2.X, possibleMove2.Y);
+                            temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, possibleMove2.X, possibleMove2.Y);
                             possibleMove2.X = temp.X;
                             possibleMove2.Y = temp.Y;
                         }
@@ -822,10 +822,10 @@ namespace Battlesnake.Algorithm
 
                         if (_gameMode == GameMode.WRAPPED)
                         {
-                            Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, possibleMove1.X, possibleMove1.Y);
+                            Point temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, possibleMove1.X, possibleMove1.Y);
                             possibleMove1.X = temp.X;
                             possibleMove1.Y = temp.Y;
-                            temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, possibleMove2.X, possibleMove2.Y);
+                            temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, possibleMove2.X, possibleMove2.Y);
                             possibleMove2.X = temp.X;
                             possibleMove2.Y = temp.Y;
                         }
@@ -886,7 +886,7 @@ namespace Battlesnake.Algorithm
 
                 if (_gameMode == GameMode.WRAPPED)
                 {
-                    Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, otherSnakeMove.X, otherSnakeMove.Y);
+                    Point temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, otherSnakeMove.X, otherSnakeMove.Y);
                     otherSnakeMove.X = temp.X;
                     otherSnakeMove.Y = temp.Y;
                 }
@@ -992,7 +992,7 @@ namespace Battlesnake.Algorithm
 
                     if (_gameMode == GameMode.WRAPPED)
                     {
-                        Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, otherSnakeMove.X, otherSnakeMove.Y);
+                        Point temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, otherSnakeMove.X, otherSnakeMove.Y);
                         otherSnakeMove.X = temp.X;
                         otherSnakeMove.Y = temp.Y;
                     }
@@ -1325,7 +1325,7 @@ namespace Battlesnake.Algorithm
 
                 if (_gameMode == GameMode.WRAPPED)
                 {
-                    Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                    Point temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
                     dx = temp.X;
                     dy = temp.Y;
                 }
@@ -1356,7 +1356,7 @@ namespace Battlesnake.Algorithm
 
                 if (_gameMode == GameMode.WRAPPED)
                 {
-                    Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                    Point temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
                     dx = temp.X;
                     dy = temp.Y;
                 }
@@ -1392,7 +1392,7 @@ namespace Battlesnake.Algorithm
 
                     if (_gameMode == GameMode.WRAPPED)
                     {
-                        Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                        Point temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
                         dx = temp.X;
                         dy = temp.Y;
                     }
@@ -1474,7 +1474,7 @@ namespace Battlesnake.Algorithm
 
                 if (_gameMode == GameMode.WRAPPED)
                 {
-                    Point temp = Util.WrapHeadCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                    Point temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
                     dx = temp.X;
                     dy = temp.Y;
                 }
