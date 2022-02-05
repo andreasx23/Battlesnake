@@ -41,5 +41,9 @@ namespace Battlesnake.Algorithm
         //CENTER
         public const double CENTER_VALUE_INNER = 35d;
         public const double CENTER_VALUE_OUTER = 17.5d;
+
+        //HAZARD
+        public const double MY_HAZARD_SCORE = -2.5d;
+        public const double OTHER_HAZARD_SCORE = 2.5d;
     }
 }

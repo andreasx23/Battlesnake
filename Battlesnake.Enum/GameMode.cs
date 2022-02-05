@@ -9,6 +9,8 @@ namespace Battlesnake.Enum
     public enum GameMode
     {
         NORMAL,
-        WRAPPED
+        WRAPPED,
+        ROYALE,
+        CONSTRICTOR
     }
 }
