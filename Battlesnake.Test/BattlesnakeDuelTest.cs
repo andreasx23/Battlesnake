@@ -165,5 +165,25 @@ namespace Battlesnake.Test
             Direction move = alg.CalculateNextMove();
             Assert.True(move == Direction.LEFT);
         }
+
+        [Fact]
+        public void DontMoveIntoSmallCavesPart1()
+        {
+            string json = GameStateDuel.DontMoveIntoSmallCavesPart1;
+            GameStatusDTO state = DeserializeGameStatusDTO(json);
+            Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
+            Direction move = alg.CalculateNextMove();
+            Assert.True(move == Direction.RIGHT);
+        }
+
+        [Fact]
+        public void DontMoveIntoSmallCavesPart2()
+        {
+            string json = GameStateDuel.DontMoveIntoSmallCavesPart2;
+            GameStatusDTO state = DeserializeGameStatusDTO(json);
+            Algo alg = new(state, Direction.NO_MOVE, Stopwatch.StartNew());
+            Direction move = alg.CalculateNextMove();
+            Assert.True(move == Direction.LEFT);
+        }
     }
 }

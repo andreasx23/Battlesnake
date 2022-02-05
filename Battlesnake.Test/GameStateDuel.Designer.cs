@@ -97,6 +97,24 @@ namespace Battlesnake.Test {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;563fc80c-1e55-4fb3-9981-1e0b1aa510a0&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:145,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:9,&quot;y&quot;:2},{&quot;x&quot;:2,&quot;y&quot;:9},{&quot;x&quot;:10,&quot;y&quot;:0},{&quot;x&quot;:2,&quot;y&quot;:10},{&quot;x&quot;:3,&quot;y&quot;:1},{&quot;x&quot;:3,&quot;y&quot;:0},{&quot;x&quot;:9,&quot;y&quot;:3},{&quot;x&quot;:0,&quot;y&quot;:3},{&quot;x&quot;:9,&quot;y&quot;:0},{&quot;x&quot;:10,&quot;y&quot;:1},{&quot;x&quot;:4,&quot;y&quot;:10},{&quot;x&quot;:4 [rest of string was truncate....
+        /// </summary>
+        internal static string DontMoveIntoSmallCavesPart1 {
+            get {
+                return ResourceManager.GetString("DontMoveIntoSmallCavesPart1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;f3a8d0b9-f7f1-47c3-ad2c-72b14d22bf0a&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:280,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:2,&quot;y&quot;:0},{&quot;x&quot;:10,&quot;y&quot;:1},{&quot;x&quot;:1,&quot;y&quot;:0},{&quot;x&quot;:2,&quot;y&quot;:2},{&quot;x&quot;:2,&quot;y&quot;:7}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_VDfxYBdFfbXw7VPJMV4KGRfD&quot;,&quot;name&quot;:&quot;g9 noSegFault&quot;,&quot;body&quot;:[{&quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string DontMoveIntoSmallCavesPart2 {
+            get {
+                return ResourceManager.GetString("DontMoveIntoSmallCavesPart2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;5bd77fe8-f544-4c15-999f-cc40f8980395&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;standard&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:15,&quot;minimumFood&quot;:1,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false}}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:254,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:10,&quot;y&quot;:10},{&quot;x&quot;:0,&quot;y&quot;:8},{&quot;x&quot;:5,&quot;y&quot;:10},{&quot;x&quot;:1,&quot;y&quot;:10},{&quot;x&quot;:4,&quot;y&quot;:7},{&quot;x&quot;:0,&quot;y&quot;:10},{&quot;x&quot;:3,&quot;y&quot;:1}],&quot;hazards&quot;:[],&quot;snakes&quot;:[{&quot;id&quot;:&quot;gs_YgS7TJGcrdwpQcxGGpr9PdSd&quot;,&quot; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DrawIsBetterThanCertainDeath {
