@@ -197,7 +197,7 @@ namespace Battlesnake.Algorithm
 
             double bestScore = double.MinValue;
             Direction bestMove = Direction.NO_MOVE;
-            int depth = amountOfSnakes;
+            stateClone.MAX_DEPTH = amountOfSnakes;
             double prevHit = _hit;
             double prevNoHit = _noHit;
             double prevGoodHit = _goodHit;
@@ -206,7 +206,6 @@ namespace Battlesnake.Algorithm
                 if (IsTimeoutThresholdReached || stateClone.MAX_DEPTH > 50)
                     break;
 
-                stateClone.MAX_DEPTH = depth;
                 List<bool> hasSnakeEatenTemp = new(hasSnakeEaten);
                 List<int> foodCountsTemp = new(foodCounts);
 
@@ -216,21 +215,23 @@ namespace Battlesnake.Algorithm
                     break;
 
                 if (Util.IsDebug)
-                    Debug.WriteLine(score + " " + move + " " + depth);
+                    Debug.WriteLine(score + " " + move + " " + stateClone.MAX_DEPTH);
 
                 bestScore = score;
                 bestMove = move;
-                depth += amountOfSnakes;
+                stateClone.MAX_DEPTH += amountOfSnakes;
                 prevHit = _hit;
                 prevNoHit = _noHit;
                 prevGoodHit = _goodHit;
+
+                //break;
             }
 
             if (Util.IsDebug)
             {
                 double total = prevHit + prevNoHit + prevGoodHit;
                 WriteDebugMessage($"No hit: {prevNoHit} + hit: {prevHit} + good hit: {prevGoodHit} = Total: {total} -- Hit procentage: {prevHit / total * 100} Good hit procentage: {prevGoodHit / total * 100} Total success procentage: {(prevHit + prevGoodHit) / total * 100}");
-                WriteDebugMessage($"Depth searched to: {depth}, a score of: {bestScore} with move: {bestMove}");
+                WriteDebugMessage($"Depth searched to: {stateClone.MAX_DEPTH}, a score of: {bestScore} with move: {bestMove}");
             }
 
             return bestMove;
@@ -405,7 +406,7 @@ namespace Battlesnake.Algorithm
                     GameObject destinationTile = state.Grid[dx][dy];
                     int prevHp = currentSnake.Health;
                     int prevLength = currentSnake.Length;
-                    currentSnake.Health -= _game.Game.Ruleset.Settings.HazardDamagePerTurn;
+                    currentSnake.Health -= _hazardSpots.Count > 0 && _hazardSpots.Contains((dx, dy)) ? _game.Game.Ruleset.Settings.HazardDamagePerTurn : 1;
                     bool hasSnakeEaten = false;
                     int currentFoodCount = foodCounts[index];
                     if (IsFoodTile(state.Grid, dx, dy))
@@ -1125,7 +1126,7 @@ namespace Battlesnake.Algorithm
                 double hazardScore = 0d;
                 //Bad for me if I'm in the hazard
                 if (_hazardSpots.Contains((myHead.X, myHead.Y)))
-                    hazardScore += Math.Pow((HeuristicConstants.MAX_SNAKE_LENGTH - myLength) / 4, 2) * HeuristicConstants.MY_HAZARD_SCORE;
+                    hazardScore -= Math.Pow((HeuristicConstants.MAX_SNAKE_LENGTH - myLength) / 4, 2) * HeuristicConstants.MY_HAZARD_SCORE;
 
                 //Good for me if other is in the hazard
                 if (_hazardSpots.Contains((otherHead.X, otherHead.Y)))

@@ -170,7 +170,7 @@ namespace Battlesnake.Algorithm
             return GameStateVoronoi(player, opponent);
         }
 
-        public static double VoronoiHeuristic(GameObject[][] grid, Snake me, Snake other)
+        public static double VoronoiHeuristic(GameObject[][] grid, GameMode gameMode, Snake me, Snake other)
         {
             Stopwatch watch = Stopwatch.StartNew();
             _grid = grid;
@@ -249,7 +249,7 @@ namespace Battlesnake.Algorithm
                 state[row, column] = ARTICULATION;
         }
 
-        public static double ChamberHeuristic(GameObject[][] grid, Snake me, Snake other)
+        public static double ChamberHeuristic(GameObject[][] grid, GameMode gameMode, Snake me, Snake other)
         {
             Stopwatch watch = Stopwatch.StartNew();
             _grid = grid;
