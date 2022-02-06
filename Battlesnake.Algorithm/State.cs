@@ -1,4 +1,5 @@
-﻿using Battlesnake.Enum;
+﻿using Battlesnake.Algorithm.Structs;
+using Battlesnake.Enum;
 using Battlesnake.Model;
 using System;
 using System.Collections.Generic;
@@ -35,62 +36,41 @@ namespace Battlesnake.Algorithm
             for (int i = 0; i < snakes.Count; i++)
             {
                 Snake snake = snakes[i];
-                int n = snake.Body.Count;
-                if (n >= 4)
-                {
-                    for (int j = 0; j < 2; j++)
-                    {
-                        Point firstBody = snake.Body[j];
-                        Grid[firstBody.X][firstBody.Y] = GameObject.BODY;
-                        Point LastBody = snake.Body[n - 1 - j];
-                        Grid[LastBody.X][LastBody.Y] = GameObject.BODY;
-                    }
-                }
-                else
-                {
-                    for (int j = 0; j < n; j++)
-                    {
-                        Point body = snake.Body[j];
-                        Grid[body.X][body.Y] = GameObject.BODY;
-                    }
-                }
                 Grid[snake.Head.X][snake.Head.Y] = GameObject.HEAD;
-                Point tail = snake.Body.Last();
-                Grid[tail.X][tail.Y] = GameObject.TAIL;
+                Grid[snake.Body[1].X][snake.Body[1].Y] = GameObject.BODY;
+                Grid[snake.Body[^2].X][snake.Body[^2].Y] = GameObject.BODY;
+                Grid[snake.Body.Last().X][snake.Body.Last().Y] = GameObject.TAIL;
             }
         }
 
         public void MoveSnakeForward(Snake current, int x, int y, bool isFoodTile)
         {
-            Point newHead = new() { X = x, Y = y };
+            PointStruct newHead = new() { X = x, Y = y };
             Grid[current.Head.X][current.Head.Y] = GameObject.BODY;
             current.Body.Insert(0, new() { X = newHead.X, Y = newHead.Y });
             current.Head = new() { X = newHead.X, Y = newHead.Y };
             if (!isFoodTile)
             {
-                Point tail = current.Body.Last();
-                Grid[tail.X][tail.Y] = GameObject.FLOOR;
+                Grid[current.Body.Last().X][current.Body.Last().Y] = GameObject.FLOOR;
                 current.Body.RemoveAt(current.Body.Count - 1);
-                tail = current.Body.Last();
-                Grid[tail.X][tail.Y] = GameObject.TAIL;
+                Grid[current.Body.Last().X][current.Body.Last().Y] = GameObject.TAIL;
             }
             Grid[newHead.X][newHead.Y] = GameObject.HEAD;
         }
 
-        public void MoveSnakeBackward(Snake current, Point tail, bool isFoodTile, GameObject destinationTile)
+        public void MoveSnakeBackward(Snake current, PointStruct tail, bool isFoodTile, GameObject destinationTile)
         {
             Grid[current.Head.X][current.Head.Y] = destinationTile;
             current.Body.RemoveAt(0);
             current.Head = new() { X = current.Body.First().X, Y = current.Body.First().Y };
             if (isFoodTile)
             {
-                Point last = current.Body.Last();
-                Grid[last.X][last.Y] = GameObject.FLOOR;
+                Grid[current.Body.Last().X][current.Body.Last().Y] = GameObject.FLOOR;
                 current.Body.RemoveAt(current.Body.Count - 1);
             }
             current.Body.Add(new() { X = tail.X, Y = tail.Y });
-            Grid[tail.X][tail.Y] = GameObject.TAIL;
             Grid[current.Head.X][current.Head.Y] = GameObject.HEAD;
+            Grid[tail.X][tail.Y] = GameObject.TAIL;
         }
 
         public bool IsGridSame(GameObject[][] other)

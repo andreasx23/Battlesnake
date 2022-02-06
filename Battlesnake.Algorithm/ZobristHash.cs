@@ -1,4 +1,5 @@
-﻿using Battlesnake.Enum;
+﻿using Battlesnake.Algorithm.Structs;
+using Battlesnake.Enum;
 using Battlesnake.Model;
 using Battlesnake.Utility;
 using System;
@@ -75,7 +76,7 @@ namespace Battlesnake.Algorithm
             return hash;
         }
 
-        public int UpdateKeyForward(int hash, Point oldNeck, Point oldHead, Point oldTail, Point newHead, Point newTail, GameObject destinationTile)
+        public int UpdateKeyForward(int hash, PointStruct oldNeck, PointStruct oldHead, PointStruct oldTail, PointStruct newHead, PointStruct newTail, GameObject destinationTile)
         {
             int newHeadIndex = (newHead.X * _height) + newHead.X;
             hash ^= _zobristNumbers[newHeadIndex][Util.ConvertGameObjectToInt(destinationTile)]; //UNDO DESTINATION TILE
@@ -92,7 +93,7 @@ namespace Battlesnake.Algorithm
             return hash;
         }
 
-        public int UpdateKeyBackward(int hash, Point oldNeck, Point oldHead, Point oldTail, Point newHead, Point newTail, GameObject destinationTile)
+        public int UpdateKeyBackward(int hash, PointStruct oldNeck, PointStruct oldHead, PointStruct oldTail, PointStruct newHead, PointStruct newTail, GameObject destinationTile)
         {
             int myOldTailIndex = (oldTail.X * _height) + oldTail.X;
             int myNewTailIndex = (newTail.X * _height) + newTail.X;

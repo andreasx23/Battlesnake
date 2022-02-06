@@ -108,13 +108,14 @@ namespace Battlesnake.Algorithm
         {
             (int score, int ownedFoodDepth)[] voronoi = { (0, -1), (0, -1) };
             if (player.Head.X == opponent.Head.X && player.Head.Y == opponent.Head.Y) return voronoi;
+            int h = _grid.Length, w = _grid.First().Length;
             int myId = 0, myFoodDepth = -1;
             int otherId = 1, otherFoodDepth = -1;
             int depth = 0;
             (int x, int y, int id) pairDepthMark = (-1, -1, -1);
             const int MARK = -1;
-            Queue<(int x, int y, int id)> queue = new();
-            Dictionary<(int x, int y), int> isVisited = new();
+            Queue<(int x, int y, int id)> queue = new(h * w + 1);
+            Dictionary<(int x, int y), int> isVisited = new(h * w);
             int[] counts = new int[2];
             queue.Enqueue((player.Head.X, player.Head.Y, myId));
             isVisited.Add((player.Head.X, player.Head.Y), myId);
@@ -263,7 +264,7 @@ namespace Battlesnake.Algorithm
         #region Private helper methods
         private static List<(int x, int y)> Neighbours(int x, int y)
         {
-            List<(int x, int y)> neighbours = new();
+            List<(int x, int y)> neighbours = new(4);
             for (int i = 0; i < _moves.Length; i++)
             {
                 (int x, int y) move = _moves[i];
