@@ -709,24 +709,26 @@ namespace Battlesnake.Algorithm
             return foods;
         }
 
+        #region Edge methods
         //Edge methods
         private bool IsOnAnyEdge(Point head) => IsOnRightEdge(head) || IsOnLeftEdge(head) || IsOnBottomEdge(head) || IsOnTopEdge(head);
         private bool IsOnRightEdge(Point head) => head.Y == _game.Board.Width - 1;
         private static bool IsOnLeftEdge(Point head) => head.Y == 0;
         private static bool IsOnTopEdge(Point head) => head.X == 0;
         private bool IsOnBottomEdge(Point head) => head.X == _game.Board.Height - 1;
-        private bool IsAheadOnRightEdgeGoingUp(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.X + 1 == behindHead.X && behindHead.X == aheadNeck.X && me.Head.Y == _game.Board.Width - 2;
-        private bool IsAheadOnRightEdgeGoingDown(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.X - 1 == behindHead.X && behindHead.X == aheadNeck.X && me.Head.Y == _game.Board.Width - 2;
-        private static bool IsAheadOnLeftEdgeGoingUp(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.X + 1 == behindHead.X && behindHead.X == aheadNeck.X && me.Head.Y == 1;
-        private static bool IsAheadOnLeftEdgeGoingDown(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.X - 1 == behindHead.X && behindHead.X == aheadNeck.X && me.Head.Y == 1;
-        private static bool IsAheadOnTopEdgeGoingLeft(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y + 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == 1;
-        private static bool IsAheadOnTopEdgeGoingRight(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y - 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == 1;
-        private bool IsAheadOnBottomEdgeGoingLeft(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y + 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == _game.Board.Height - 2;
-        private bool IsAheadOnBottomEdgeGoingRight(Point aheadHead, Point behindHead, Point aheadNeck, Snake me) => aheadHead.Y - 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && me.Head.X == _game.Board.Height - 2;
+        private bool IsAheadOnRightEdgeGoingUp(Point aheadHead, Point behindHead, Point aheadNeck, Snake snake) => aheadHead.X + 1 == behindHead.X && behindHead.X == aheadNeck.X && snake.Head.Y == _game.Board.Width - 2;
+        private bool IsAheadOnRightEdgeGoingDown(Point aheadHead, Point behindHead, Point aheadNeck, Snake snake) => aheadHead.X - 1 == behindHead.X && behindHead.X == aheadNeck.X && snake.Head.Y == _game.Board.Width - 2;
+        private static bool IsAheadOnLeftEdgeGoingUp(Point aheadHead, Point behindHead, Point aheadNeck, Snake snake) => aheadHead.X + 1 == behindHead.X && behindHead.X == aheadNeck.X && snake.Head.Y == 1;
+        private static bool IsAheadOnLeftEdgeGoingDown(Point aheadHead, Point behindHead, Point aheadNeck, Snake snake) => aheadHead.X - 1 == behindHead.X && behindHead.X == aheadNeck.X && snake.Head.Y == 1;
+        private static bool IsAheadOnTopEdgeGoingLeft(Point aheadHead, Point behindHead, Point aheadNeck, Snake snake) => aheadHead.Y + 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && snake.Head.X == 1;
+        private static bool IsAheadOnTopEdgeGoingRight(Point aheadHead, Point behindHead, Point aheadNeck, Snake snake) => aheadHead.Y - 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && snake.Head.X == 1;
+        private bool IsAheadOnBottomEdgeGoingLeft(Point aheadHead, Point behindHead, Point aheadNeck, Snake snake) => aheadHead.Y + 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && snake.Head.X == _game.Board.Height - 2;
+        private bool IsAheadOnBottomEdgeGoingRight(Point aheadHead, Point behindHead, Point aheadNeck, Snake snake) => aheadHead.Y - 1 == behindHead.Y && behindHead.Y == aheadNeck.Y && snake.Head.X == _game.Board.Height - 2;
         private static bool IsMovingLeft(Snake snake) => snake.Head.Y + 1 == snake.Body[1].Y;
         private static bool IsMovingRight(Snake snake) => snake.Head.Y - 1 == snake.Body[1].Y;
         private static bool IsMovingUp(Snake snake) => snake.Head.X + 1 == snake.Body[1].X;
         private static bool IsMovingDown(Snake snake) => snake.Head.X - 1 == snake.Body[1].X;
+        #endregion
 
         private double EvaluateState(State state, List<Snake> snakes, List<int> foodsCounts)
         {
@@ -1644,7 +1646,7 @@ namespace Battlesnake.Algorithm
         {
             void SwapPointCoordinate(Point point)
             {
-                point.Y = _game.Board.Height - 1 - point.Y;
+                point.Y = game.Board.Height - 1 - point.Y;
                 int temp = point.X;
                 point.X = point.Y;
                 point.Y = temp;
