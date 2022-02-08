@@ -4,6 +4,7 @@ using Battlesnake.DTOModel;
 using Battlesnake.Enum;
 using Battlesnake.Model;
 using Battlesnake.Utility;
+using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,6 +17,8 @@ namespace Battlesnake.Algorithm
 {
     public class Algo
     {
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         private readonly bool IS_LOCAL;
         private readonly GameStatusDTO _game;
         private readonly GameObject[][] _grid;
@@ -27,13 +30,6 @@ namespace Battlesnake.Algorithm
             { (1, 0), Direction.DOWN },
             { (0, 1), Direction.RIGHT },
             { (-1, 0), Direction.UP },
-        };
-        private readonly List<Point> _diagonals = new(4)
-        {
-            new Point() { X = -1, Y = -1 }, //Upper left
-            new Point() { X = -1, Y = 1 }, //Upper right
-            new Point() { X = 1, Y = -1 }, //Lower left
-            new Point() { X = 1, Y = 1 }, //Lower right
         };
         private readonly (int x, int y)[] _moves = new (int x, int y)[4]
         {
@@ -59,11 +55,11 @@ namespace Battlesnake.Algorithm
                 "constrictor" => GameMode.CONSTRICTOR,
                 _ => GameMode.NORMAL,
             };
+            _game = game;
             IS_LOCAL = false;
             _rand = new();
             _watch = watch;
             UpdateCoordinates(game);
-            _game = game;
             _dir = dir;
             _grid = GenerateGrid();
             ZobristHash.InitZobristHash(game.Board.Height, game.Board.Width);
@@ -84,25 +80,20 @@ namespace Battlesnake.Algorithm
         {
             try
             {
-                //Direction iterativeDeepening = MaxNParallelIterativeDeepening();
                 Direction iterativeDeepening = MaxNIterativeDeepening();
                 if (iterativeDeepening != Direction.NO_MOVE)
                 {
                     _dir = iterativeDeepening;
                     return _dir;
                 }
-                _dir = BestAdjacentFloodFill(_game.You);
             }
             catch (Exception e)
             {
-                if (Util.IsDebug) WriteDebugMessage(e.Message);
-            }
-            finally
-            {
-                if (Util.IsDebug) WriteDebugMessage($"Run time took: {_watch.Elapsed} -- next direction: {_dir}");
+                _logger.Error(e, $"{Util.LogPrefix(_game.Game.Id)} resulted in an error returning previous move: {_dir}");
+                return _dir;
             }
 
-            return _dir;
+            return BestAdjacentFloodFill(_game.You);
         }
 
         #region Mini max with alpha beta pruning
@@ -197,14 +188,16 @@ namespace Battlesnake.Algorithm
 
             double bestScore = double.MinValue;
             Direction bestMove = Direction.NO_MOVE;
-            stateClone.MAX_DEPTH = amountOfSnakes;
             double prevHit = _hit;
             double prevNoHit = _noHit;
             double prevGoodHit = _goodHit;
+            int actualDepth = 0;
             while (true)
             {
                 if (IsTimeoutThresholdReached || stateClone.MAX_DEPTH > 50)
                     break;
+
+                stateClone.MAX_DEPTH += amountOfSnakes;
 
                 List<bool> actualHasSnakeEaten = CloneHasSnakesEaten(hasSnakeEaten, 0, false);
                 List<int> actualFoodCounts = CloneFoodCounts(foodCounts, 0, 0);
@@ -213,23 +206,25 @@ namespace Battlesnake.Algorithm
                 if (_searchCutOff)
                     break;
 
-                if (Util.IsDebug)
-                    Debug.WriteLine(score + " " + move + " " + stateClone.MAX_DEPTH);
-
                 bestScore = score;
                 bestMove = move;
-                stateClone.MAX_DEPTH += amountOfSnakes;
                 prevHit = _hit;
                 prevNoHit = _noHit;
                 prevGoodHit = _goodHit;
+                actualDepth = stateClone.MAX_DEPTH;
+
+                if (Util.IsDebug)
+                    Debug.WriteLine(score + " " + move + " " + actualDepth);
             }
 
             if (Util.IsDebug)
             {
                 double total = prevHit + prevNoHit + prevGoodHit;
                 WriteDebugMessage($"No hit: {prevNoHit} + hit: {prevHit} + good hit: {prevGoodHit} = Total: {total} -- Hit procentage: {prevHit / total * 100} Good hit procentage: {prevGoodHit / total * 100} Total success procentage: {(prevHit + prevGoodHit) / total * 100}");
-                WriteDebugMessage($"Depth searched to: {stateClone.MAX_DEPTH}, a score of: {bestScore} with move: {bestMove}");
+                WriteDebugMessage($"Depth searched to: {actualDepth}, a score of: {bestScore} with move: {bestMove}");
             }
+
+            _logger.Info($"{Util.LogPrefix(_game.Game.Id)} Took: {_watch.Elapsed} to calculate the move -- Previous move was: {_dir} Next move is: {bestMove} -- Searched to a depth of: {actualDepth} with a score of: {bestScore}");
 
             return bestMove;
         }
@@ -313,13 +308,12 @@ namespace Battlesnake.Algorithm
 
         //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
         //http://people.csail.mit.edu/plaat/mtdf.html#abmem
-        private readonly ConcurrentDictionary<int, TranspositionValue> _transpositionTable = new();
+        private readonly Dictionary<int, TranspositionValue> _transpositionTable = new();
         private (double score, Direction move) MaxNWithAlphaBeta(State state, List<Snake> snakes, int depth, List<bool> hasSnakesEaten, List<int> foodCounts, int index = 0, double alpha = double.MinValue, double beta = double.MaxValue)
         {
             if (IsTimeoutThresholdReached)
             {
                 _searchCutOff = true;
-                if (Util.IsDebug) WriteDebugMessage($"THRESHOLD! {_watch.Elapsed}");
                 return (0, Direction.NO_MOVE);
             }
 
@@ -376,7 +370,6 @@ namespace Battlesnake.Algorithm
                 if (IsTimeoutThresholdReached) //Halt possible new entries
                 {
                     _searchCutOff = true;
-                    if (Util.IsDebug) WriteDebugMessage($"THRESHOLD! {_watch.Elapsed}");
                     return (0, Direction.NO_MOVE);
                 }
 
@@ -482,15 +475,18 @@ namespace Battlesnake.Algorithm
                 }
             }
 
-            double lowerBound = double.MinValue, upperbound = double.MaxValue;
-            if (bestMoveScore <= alpha) upperbound = bestMoveScore;
-            if (bestMoveScore > alpha && bestMoveScore < beta)
+            if (!_transpositionTable.ContainsKey(state.Key))
             {
-                upperbound = bestMoveScore;
-                lowerBound = bestMoveScore;
+                double lowerBound = double.MinValue, upperbound = double.MaxValue;
+                if (bestMoveScore <= alpha) upperbound = bestMoveScore;
+                if (bestMoveScore > alpha && bestMoveScore < beta)
+                {
+                    upperbound = bestMoveScore;
+                    lowerBound = bestMoveScore;
+                }
+                if (bestMoveScore >= beta) lowerBound = bestMoveScore;
+                _transpositionTable.Add(state.Key, new() { Move = bestMove, MoveIndex = moveIndex, Depth = depth, LowerBound = lowerBound, UpperBound = upperbound });
             }
-            if (bestMoveScore >= beta) lowerBound = bestMoveScore;
-            _transpositionTable.TryAdd(state.Key, new() { Move = bestMove, MoveIndex = moveIndex, Depth = depth, LowerBound = lowerBound, UpperBound = upperbound });
 
             return (bestMoveScore, bestMove);
         }
@@ -1077,10 +1073,10 @@ namespace Battlesnake.Algorithm
             score += theirFoodScore;
 
             //----- Flood fill -----
-            double myFloodFillScore = CalculateFloodfillScore(state.Grid, me) * HeuristicConstants.MY_FLOODFILL_VALUE;
+            //double myFloodFillScore = CalculateFloodfillScore(state.Grid, me) * HeuristicConstants.MY_FLOODFILL_VALUE;
             double otherFloodFillScore = -1d * CalculateFloodfillScore(state.Grid, other) * HeuristicConstants.OTHER_FLOODFILL_VALUE;
-            double floodFillScore = myFloodFillScore + otherFloodFillScore;
-            score += floodFillScore;
+            //double floodFillScore = myFloodFillScore + otherFloodFillScore;
+            score += otherFloodFillScore;
 
             if (_gameMode != GameMode.ROYALE || _gameMode == GameMode.ROYALE && _hazardSpots.Count == 0)
             {
@@ -1298,6 +1294,13 @@ namespace Battlesnake.Algorithm
                 }
             }
 
+            static double AdjustForFutureUncertainty(double score, int remainingDepth, int maxDepth)
+            {
+                int pow = maxDepth - remainingDepth - 2;
+                double futureUncertainty = Math.Pow(HeuristicConstants.FUTURE_UNCERTAINTY_FACOTR, pow);
+                return score * futureUncertainty;
+            }
+
             double score;
             if (mySnakeDead)
                 score = AdjustForFutureUncertainty(-1000, remainingDepth, maxDepth);
@@ -1320,13 +1323,6 @@ namespace Battlesnake.Algorithm
                 isGameOver = true;
 
             return (score, isGameOver);
-        }
-
-        private static double AdjustForFutureUncertainty(double score, int remainingDepth, int maxDepth)
-        {
-            int pow = maxDepth - remainingDepth - 2;
-            double futureUncertainty = Math.Pow(HeuristicConstants.FUTURE_UNCERTAINTY_FACOTR, pow);
-            return score * futureUncertainty;
         }
         #endregion
 
@@ -1646,62 +1642,48 @@ namespace Battlesnake.Algorithm
 
         private void UpdateCoordinates(GameStatusDTO game)
         {
-            int h = game.Board.Height - 1, temp;
+            void SwapPointCoordinate(Point point)
+            {
+                point.Y = _game.Board.Height - 1 - point.Y;
+                int temp = point.X;
+                point.X = point.Y;
+                point.Y = temp;
+            }
+
             for (int i = 0; i < game.Board.Food.Count; i++)
             {
                 //Update food
-                Point food = game.Board.Food[i];
-                food.Y = h - food.Y;
-                temp = food.X;
-                food.X = food.Y;
-                food.Y = temp;
+                SwapPointCoordinate(game.Board.Food[i]);
             }
 
             for (int i = 0; i < game.Board.Snakes.Count; i++)
             {
                 //Update snake head
                 Snake snake = game.Board.Snakes[i];
-                snake.Head.Y = h - snake.Head.Y;
-                temp = snake.Head.X;
-                snake.Head.X = snake.Head.Y;
-                snake.Head.Y = temp;
+                SwapPointCoordinate(snake.Head);
                 for (int j = 0; j < snake.Body.Count; j++)
                 {
                     //Update snake body
-                    Point body = snake.Body[j];
-                    body.Y = h - body.Y;
-                    temp = body.X;
-                    body.X = body.Y;
-                    body.Y = temp;
+                    SwapPointCoordinate(snake.Body[j]);
                     if (snake.Id == game.You.Id)
                     {
                         //Update my body
-                        Point youBody = game.You.Body[j];
-                        youBody.Y = h - youBody.Y;
-                        temp = youBody.X;
-                        youBody.X = youBody.Y;
-                        youBody.Y = temp;
+                        SwapPointCoordinate(game.You.Body[j]);
                     }
                 }
             }
 
             //Update my head
-            game.You.Head.Y = h - game.You.Head.Y;
-            temp = game.You.Head.X;
-            game.You.Head.X = game.You.Head.Y;
-            game.You.Head.Y = temp;
+            SwapPointCoordinate(game.You.Head);
 
             if (game.Board.Hazards.Count > 0)
             {
                 //Update hazard spots
                 for (int i = 0; i < game.Board.Hazards.Count; i++)
                 {
-                    Point current = game.Board.Hazards[i];
-                    current.Y = h - current.Y;
-                    temp = current.X;
-                    current.X = current.Y;
-                    current.Y = temp;
-                    _hazardSpots.Add((current.X, current.Y));
+                    Point hazard = game.Board.Hazards[i];
+                    SwapPointCoordinate(hazard);
+                    _hazardSpots.Add((hazard.X, hazard.Y));
                 }
             }
         }

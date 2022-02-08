@@ -45,7 +45,7 @@ namespace Battlesnake.Algorithm
                 if (_instance != null)
                     return _instance;
                 else
-                    throw new Exception($"You have to initialize an instance of {nameof(ZobristHash)}!");
+                    throw new Exception($"You have to initialize an instance of {nameof(ZobristHash)} using {nameof(InitZobristHash)} before calling the Instance method!");
             }
         }
 

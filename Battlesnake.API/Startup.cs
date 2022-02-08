@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,7 +42,7 @@ namespace Battlesnake.API
             services.AddControllers(o => { o.OutputFormatters.Clear(); })
                     .AddNewtonsoftJson(o => { o.UseCamelCasing(processDictionaryKeys: true); });
 
-            Dictionary<(string id, string name), Direction> map = new();
+            ConcurrentDictionary<(string gameId, string snakeId), Direction> map = new();
             services.AddSingleton(map);
         }
 

@@ -16,7 +16,7 @@ namespace Battlesnake.Algorithm
         private const bool IS_LOCAL = false;
         public GameObject[][] Grid { get; private set; }
         public int Key { get; set; } = 0;
-        public int MAX_DEPTH { get; set; } = HeuristicConstants.MINIMAX_DEPTH;
+        public int MAX_DEPTH { get; set; } = 0;
 
         public State(GameObject[][] grid)
         {
