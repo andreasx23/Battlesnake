@@ -252,12 +252,10 @@ namespace Battlesnake.Algorithm
 
         public static double ChamberHeuristic(GameObject[][] grid, GameMode gameMode, Snake me, Snake other)
         {
-            Stopwatch watch = Stopwatch.StartNew();
             _grid = grid;
             int[,] state = GetState(me, other);
             state = HopcroftTarjan(state);
             double score = ComputeVoroni(state, me, other);
-            //if (Util.IsDebug) Debug.WriteLine($"Chamber heuristic voronoi took: {watch.Elapsed} to run");
             return score;
         }
 

@@ -846,6 +846,27 @@ namespace Battlesnake.Algorithm
                             otherSnakeMove = new() { X = other.Head.X - 1, Y = other.Head.Y };
                         else if (IsAheadOnRightEdgeGoingDown(other.Head, me.Head, otherNeck, me))
                             otherSnakeMove = new() { X = other.Head.X + 1, Y = other.Head.Y };
+                        else //Try to predict snake move
+                        {
+                            if (IsMovingDown(other))
+                                otherSnakeMove = new() { X = other.Head.X + 1, Y = other.Head.Y };
+                            else if (IsMovingUp(other))
+                                otherSnakeMove = new() { X = other.Head.X - 1, Y = other.Head.Y };
+                            else //Try to predict snake move
+                            {
+                                if (IsMovingDown(other))
+                                    otherSnakeMove = new() { X = other.Head.X + 1, Y = other.Head.Y };
+                                else if (IsMovingUp(other))
+                                    otherSnakeMove = new() { X = other.Head.X - 1, Y = other.Head.Y };
+                                else if (IsMovingRight(other))
+                                {
+                                    if (Util.RollThiftyThiftyChance())
+                                        otherSnakeMove = new() { X = other.Head.X + 1, Y = other.Head.Y };
+                                    else
+                                        otherSnakeMove = new() { X = other.Head.X - 1, Y = other.Head.Y };
+                                }
+                            }
+                        }
                     }
                     else if (IsOnLeftEdge(other.Head))
                     {
@@ -853,6 +874,20 @@ namespace Battlesnake.Algorithm
                             otherSnakeMove = new() { X = other.Head.X - 1, Y = other.Head.Y };
                         else if (IsAheadOnLeftEdgeGoingDown(other.Head, me.Head, otherNeck, me))
                             otherSnakeMove = new() { X = other.Head.X + 1, Y = other.Head.Y };
+                        else //Try to predict snake move
+                        {
+                            if (IsMovingDown(other))
+                                otherSnakeMove = new() { X = other.Head.X + 1, Y = other.Head.Y };
+                            else if (IsMovingUp(other))
+                                otherSnakeMove = new() { X = other.Head.X - 1, Y = other.Head.Y };
+                            else if (IsMovingLeft(other))
+                            {
+                                if (Util.RollThiftyThiftyChance())
+                                    otherSnakeMove = new() { X = other.Head.X + 1, Y = other.Head.Y };
+                                else
+                                    otherSnakeMove = new() { X = other.Head.X - 1, Y = other.Head.Y };
+                            }
+                        }
                     }
                     else if (IsOnTopEdge(other.Head))
                     {
@@ -860,6 +895,20 @@ namespace Battlesnake.Algorithm
                             otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y - 1 };
                         else if (IsAheadOnTopEdgeGoingRight(other.Head, me.Head, otherNeck, me))
                             otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y + 1 };
+                        else //Try to predict snake move
+                        {
+                            if (IsMovingRight(other))
+                                otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y + 1 };
+                            else if (IsMovingLeft(other))
+                                otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y - 1 };
+                            else if (IsMovingUp(other))
+                            {
+                                if (Util.RollThiftyThiftyChance())
+                                    otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y + 1 };
+                                else
+                                    otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y - 1 };
+                            }
+                        }
                     }
                     else if (IsOnBottomEdge(other.Head))
                     {
@@ -867,6 +916,20 @@ namespace Battlesnake.Algorithm
                             otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y - 1 };
                         else if (IsAheadOnBottomEdgeGoingRight(other.Head, me.Head, otherNeck, me))
                             otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y + 1 };
+                        else //Try to predict snake move
+                        {
+                            if (IsMovingRight(other))
+                                otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y + 1 };
+                            else if (IsMovingLeft(other))
+                                otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y - 1 };
+                            else if (IsMovingDown(other))
+                            {
+                                if (Util.RollThiftyThiftyChance())
+                                    otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y + 1 };
+                                else
+                                    otherSnakeMove = new() { X = other.Head.X, Y = other.Head.Y - 1 };
+                            }
+                        }
                     }
                 }
                 else //Try to predict snake move
@@ -893,7 +956,7 @@ namespace Battlesnake.Algorithm
 
                 int manhattenDistanceToOtherSnake = Util.ManhattenDistance(me.Head.X, me.Head.Y, otherSnakeMove.X, otherSnakeMove.Y);
                 int distanceToOtherSnake = Math.Abs(maxDistance - manhattenDistanceToOtherSnake);
-                aggresionScore = distanceToOtherSnake * HeuristicConstants.AGGRESSION_VALUE;
+                aggresionScore = distanceToOtherSnake * HeuristicConstants.AGGRESSION_VALUE_LONGER; //Courses one test case to fail
             }
             else
             {
@@ -999,7 +1062,7 @@ namespace Battlesnake.Algorithm
 
                     int manhattenDistanceToOtherSnake = Util.ManhattenDistance(me.Head.X, me.Head.Y, otherSnakeMove.X, otherSnakeMove.Y);
                     int distanceToOtherSnake = Math.Abs(maxDistance - manhattenDistanceToOtherSnake);
-                    aggresionScore = distanceToOtherSnake * HeuristicConstants.AGGRESSION_VALUE;
+                    aggresionScore = distanceToOtherSnake * HeuristicConstants.AGGRESSION_VALUE_SHORTER;
                 }
             }
             score += aggresionScore;
@@ -1140,7 +1203,7 @@ namespace Battlesnake.Algorithm
                                                        head.Y == 2 && head.X >= 2 && head.X <= 8 || //Left center
                                                        head.Y == 8 && head.X >= 2 && head.X <= 8;   //Right center
 
-        private (Snake other, int otherIndex) FindClosestSnakeUsingManhattanDistanceToHead(List<Snake> snakes)
+        private static (Snake other, int otherIndex) FindClosestSnakeUsingManhattanDistanceToHead(List<Snake> snakes)
         {
             Snake me = snakes[0];
             int otherIndex = 0, currentMin = int.MaxValue;
@@ -1575,14 +1638,16 @@ namespace Battlesnake.Algorithm
             {
                 grid[i] = new GameObject[_game.Board.Width];
                 for (int j = 0; j < grid[i].Length; j++)
-                    grid[i][j] = GameObject.FLOOR;
+                    grid[i][j] = _gameMode != GameMode.CONSTRICTOR ? GameObject.FLOOR : GameObject.FOOD;
             }
+
             //Setup food on the grid
             for (int i = 0; i < _game.Board.Food.Count; i++)
             {
                 Point food = _game.Board.Food[i];
                 grid[food.X][food.Y] = GameObject.FOOD;
             }
+
             //Setup snakes on the grid
             for (int i = 0; i < _game.Board.Snakes.Count; i++)
             {

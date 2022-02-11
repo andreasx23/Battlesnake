@@ -17,7 +17,8 @@ namespace Battlesnake.Algorithm
         public const double FUTURE_UNCERTAINTY_FACOTR = 0.90d;
 
         //AGGRESSION
-        public const double AGGRESSION_VALUE = 10d;
+        public const double AGGRESSION_VALUE_LONGER = 17.5d;
+        public const double AGGRESSION_VALUE_SHORTER = 10d;
 
         //FOOD
         public const double MY_FOOD_VALUE = 50d;
