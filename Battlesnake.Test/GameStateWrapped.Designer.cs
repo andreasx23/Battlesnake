@@ -19,7 +19,7 @@ namespace Battlesnake.Test {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class GameStateWrapped {
@@ -57,6 +57,15 @@ namespace Battlesnake.Test {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;game&quot;:{&quot;id&quot;:&quot;afb4c061-d1cf-44cf-bcb1-4286a3e837b2&quot;,&quot;ruleset&quot;:{&quot;name&quot;:&quot;wrapped&quot;,&quot;version&quot;:&quot;?&quot;,&quot;settings&quot;:{&quot;foodSpawnChance&quot;:20,&quot;minimumFood&quot;:1,&quot;hazardDamagePerTurn&quot;:14,&quot;royale&quot;:{},&quot;squad&quot;:{&quot;allowBodyCollisions&quot;:false,&quot;sharedElimination&quot;:false,&quot;sharedHealth&quot;:false,&quot;sharedLength&quot;:false},&quot;map&quot;:&quot;hz_spiral&quot;,&quot;map_author&quot;:&quot;altersaddle&quot;}},&quot;timeout&quot;:500,&quot;source&quot;:&quot;arena&quot;},&quot;turn&quot;:146,&quot;board&quot;:{&quot;width&quot;:11,&quot;height&quot;:11,&quot;food&quot;:[{&quot;x&quot;:4,&quot;y&quot;:3},{&quot;x&quot;:3,&quot;y&quot;:4},{&quot;x&quot;:2,&quot;y&quot;:4}],&quot;hazards&quot;:[{&quot;x&quot;:6,&quot;y&quot;:7},{&quot;x&quot;:6,&quot;y&quot;:8},{&quot;x&quot;:7,&quot;y&quot;:8} [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string DontEnterACave {
+            get {
+                return ResourceManager.GetString("DontEnterACave", resourceCulture);
             }
         }
         

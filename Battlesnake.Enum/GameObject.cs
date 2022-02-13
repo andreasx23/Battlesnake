@@ -12,6 +12,7 @@ namespace Battlesnake.Enum
         HEAD = 'X',
         BODY = '+',
         TAIL = 'T',
-        FLOOR = ' '
+        FLOOR = ' ',
+        HAZARD = '$'
     }
 }

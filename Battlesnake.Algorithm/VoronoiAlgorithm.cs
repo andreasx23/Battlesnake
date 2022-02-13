@@ -262,6 +262,7 @@ namespace Battlesnake.Algorithm
         #region Private helper methods
         private static List<(int x, int y)> Neighbours(int x, int y)
         {
+            int h = _grid.Length, w = _grid.First().Length;
             List<(int x, int y)> neighbours = new(4);
             for (int i = 0; i < _moves.Length; i++)
             {
@@ -270,7 +271,7 @@ namespace Battlesnake.Algorithm
 
                 if (_gameMode == GameMode.WRAPPED)
                 {
-                    Point temp = Util.WrapPointCoordinates(_grid.Length, _grid.First().Length, dx, dy);
+                    Point temp = Util.WrapPointCoordinates(h, w, dx, dy);
                     dx = temp.X;
                     dy = temp.Y;
                 }

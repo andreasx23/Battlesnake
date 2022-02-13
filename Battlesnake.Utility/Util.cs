@@ -31,6 +31,7 @@ namespace Battlesnake.Utility
                 GameObject.HEAD => 2,
                 GameObject.BODY => 3,
                 GameObject.TAIL => 4,
+                GameObject.HAZARD => 5,
                 _ => throw new Exception("Invalid piece"),
             };
         }
@@ -49,10 +50,12 @@ namespace Battlesnake.Utility
 
         public static Point WrapPointCoordinates(int height, int width, int x, int y)
         {
-            int dx = x % height;
+            int dx = x;
             if (dx < 0) dx = height - 1;
-            int dy = y % width;
+            else if (dx >= height) dx = 0;
+            int dy = y;
             if (dy < 0) dy = width - 1;
+            else if (dy >= width) dy = 0;
             return new() { X = dx, Y = dy };
         }
 
