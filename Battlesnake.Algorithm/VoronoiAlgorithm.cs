@@ -285,7 +285,7 @@ namespace Battlesnake.Algorithm
         private static bool IsValid(int x, int y)
         {
             int h = _grid.Length, w = _grid.First().Length;
-            return x >= 0 && x < h && y >= 0 && y < w && _grid[x][y] != GameObject.BODY && _grid[x][y] != GameObject.HEAD;
+            return x >= 0 && x < h && y >= 0 && y < w && _grid[x][y] != GameObject.TAIL && _grid[x][y] != GameObject.BODY && _grid[x][y] != GameObject.HEAD;
         }
 
         private static void Print(int[,] costs)

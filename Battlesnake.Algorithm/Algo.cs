@@ -44,7 +44,7 @@ namespace Battlesnake.Algorithm
         private double _hit = 0d, _noHit = 0d, _goodHit = 0d;
         private bool _searchCutOff = false;
         private readonly GameMode _gameMode = GameMode.NORMAL;
-        private HashSet<(int x, int y)> _hazards = new();
+        private readonly HashSet<(int x, int y)> _hazards = new();
 
         public Algo(GameStatusDTO game, Direction dir, Stopwatch watch)
         {
@@ -80,6 +80,7 @@ namespace Battlesnake.Algorithm
         {
             try
             {
+                //Direction iterativeDeepening = _game.Board.Snakes.Count == 2 ? MaxNIterativeDeepening() : ParanoidIterativeDeepening();
                 Direction iterativeDeepening = MaxNIterativeDeepening();
                 if (iterativeDeepening != Direction.NO_MOVE)
                 {
@@ -166,12 +167,11 @@ namespace Battlesnake.Algorithm
             return bestMove;
         }
 
-        private Direction MaxNIterativeDeepening()
+        private Direction ParanoidIterativeDeepening()
         {
             State stateClone = _state.DeepClone();
 
-            if (Util.IsDebug)
-                stateClone.Print();
+            if (Util.IsDebug) stateClone.Print();
 
             int amountOfSnakes = _game.Board.Snakes.Count;
             List<Snake> snakes = new(amountOfSnakes);
@@ -199,11 +199,11 @@ namespace Battlesnake.Algorithm
                 if (IsTimeoutThresholdReached || stateClone.MAX_DEPTH > 50)
                     break;
 
-                stateClone.MAX_DEPTH += amountOfSnakes;
+                stateClone.MAX_DEPTH += 2;
 
                 List<bool> actualHasSnakeEaten = CloneHasSnakesEaten(hasSnakeEaten, 0, false);
                 List<int> actualFoodCounts = CloneFoodCounts(foodCounts, 0, 0);
-                (double score, Direction move) = MaxNWithAlphaBeta(stateClone, snakes, stateClone.MAX_DEPTH, actualHasSnakeEaten, actualFoodCounts);
+                (double score, Direction move) = ParanoidSearch(stateClone, snakes, stateClone.MAX_DEPTH, actualHasSnakeEaten, actualFoodCounts);
 
                 if (_searchCutOff)
                     break;
@@ -214,9 +214,6 @@ namespace Battlesnake.Algorithm
                 prevNoHit = _noHit;
                 prevGoodHit = _goodHit;
                 actualDepth = stateClone.MAX_DEPTH;
-
-                //if (Util.IsDebug)
-                //    Debug.WriteLine(score + " " + move + " " + actualDepth);
 
                 _logger.Info(score + " " + move + " " + actualDepth);
             }
@@ -229,6 +226,68 @@ namespace Battlesnake.Algorithm
             }
 
             _logger.Info($"{Util.LogPrefix(_game.Game.Id)} Took: {_watch.Elapsed} to calculate the move -- Previous move was: {_dir} Next move is: {bestMove} -- Searched to a depth of: {actualDepth} with a score of: {bestScore}");
+
+            return bestMove;
+        }
+
+        private Direction MaxNIterativeDeepening()
+        {
+            State stateClone = _state.DeepClone();
+
+            if (Util.IsDebug) stateClone.Print();
+
+            int amountOfSnakes = _game.Board.Snakes.Count;
+            List<Snake> snakes = new(amountOfSnakes);
+            List<bool> hasSnakeEaten = new(amountOfSnakes);
+            List<int> foodCounts = new(amountOfSnakes);
+            for (int i = 0; i < amountOfSnakes; i++)
+            {
+                Snake snake = _game.Board.Snakes[i].Clone();
+                if (snake.Id == _game.You.Id)
+                    snakes.Insert(0, snake);
+                else
+                    snakes.Add(snake);
+                hasSnakeEaten.Add(false);
+                foodCounts.Add(0);
+            }
+
+            Direction bestMove = Direction.NO_MOVE;
+            double prevHit = _hit, prevNoHit = _noHit, prevGoodHit = _goodHit, bestScore = double.MinValue;
+            int actualSearchDepth = 0, bestMoveDepth = 0;
+            while (true)
+            {
+                if (IsTimeoutThresholdReached || stateClone.MAX_DEPTH >= 50) break;
+
+                stateClone.MAX_DEPTH += amountOfSnakes;
+
+                List<bool> actualHasSnakeEaten = CloneHasSnakesEaten(hasSnakeEaten, 0, false);
+                List<int> actualFoodCounts = CloneFoodCounts(foodCounts, 0, 0);
+                (double score, Direction move) = MaxNWithAlphaBeta(stateClone, snakes, stateClone.MAX_DEPTH, actualHasSnakeEaten, actualFoodCounts);
+
+                if (_searchCutOff) break;
+
+                if (move != Direction.NO_MOVE)
+                {
+                    bestScore = score;
+                    bestMove = move;
+                    bestMoveDepth = stateClone.MAX_DEPTH;
+                }
+
+                prevHit = _hit;
+                prevNoHit = _noHit;
+                prevGoodHit = _goodHit;
+                actualSearchDepth = stateClone.MAX_DEPTH;
+                _logger.Info($"Current depth: {actualSearchDepth} found move: {move} with a score of: {score}");
+            }
+
+            if (Util.IsDebug)
+            {
+                double total = prevHit + prevNoHit + prevGoodHit;
+                _logger.Info($"No hit: {prevNoHit} + hit: {prevHit} + good hit: {prevGoodHit} = Total: {total} -- Hit procentage: {prevHit / total * 100} Good hit procentage: {prevGoodHit / total * 100} Total success procentage: {(prevHit + prevGoodHit) / total * 100}");
+                _logger.Info($"Depth searched to: {actualSearchDepth} -- Next move: {bestMove} at depth: {bestMoveDepth} with a score of: {bestScore}");
+            }
+
+            _logger.Info($"{Util.LogPrefix(_game.Game.Id)} Took: {_watch.Elapsed} to calculate the move -- Previous move was: {_dir} -- Depth searched to: {actualSearchDepth} -- next move: {bestMove} at depth: {bestMoveDepth} with a score of: {bestScore}");
 
             return bestMove;
         }
@@ -310,10 +369,7 @@ namespace Battlesnake.Algorithm
             return bestMove;
         }
 
-        //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
-        //http://people.csail.mit.edu/plaat/mtdf.html#abmem
-        private readonly Dictionary<int, TranspositionValue> _transpositionTable = new();
-        private (double score, Direction move) MaxNWithAlphaBeta(State state, List<Snake> snakes, int depth, List<bool> hasSnakesEaten, List<int> foodCounts, int index = 0, double alpha = double.MinValue, double beta = double.MaxValue)
+        private (double score, Direction move) ParanoidSearch(State state, List<Snake> snakes, int depth, List<bool> hasSnakesEaten, List<int> foodCounts, bool isMaximizer = true, double alpha = double.MinValue, double beta = double.MaxValue)
         {
             if (IsTimeoutThresholdReached)
             {
@@ -357,12 +413,380 @@ namespace Battlesnake.Algorithm
                 return (evaluatedState, Direction.NO_MOVE);
             }
 
+            if (isMaximizer) //Only evaluate if game is over when it's my turn because it takes snake count depths for a turn
+            {
+                (double score, bool isGameOver) = EvaluateIfGameIsOver(snakes, depth, state.MAX_DEPTH);
+                if (isGameOver) return (score, Direction.NO_MOVE);
+            }
+
+            Direction bestMove = Direction.NO_MOVE;
+            double bestMoveScore = isMaximizer ? double.MinValue : double.MaxValue;
+            int moveIndex = 0;
+            if (isMaximizer)
+            {
+                int index = 0;
+                Snake currentSnake = snakes[index];
+                bool hasCurrentSnakeEaten = hasSnakesEaten[index];
+                for (int i = 0; i < moves.Length; i++) //For loop because it's faster in runtime
+                {
+                    if (IsTimeoutThresholdReached) //Halt possible new entries
+                    {
+                        _searchCutOff = true;
+                        return (0, Direction.NO_MOVE);
+                    }
+
+                    (int x, int y) = moves[i];
+                    int dx = x + currentSnake.Head.X, dy = y + currentSnake.Head.Y;
+
+                    if (_gameMode == GameMode.WRAPPED)
+                    {
+                        Point temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                        dx = temp.X;
+                        dy = temp.Y;
+                    }
+
+                    if (IsInBounds(dx, dy) && state.Grid[dx][dy] != GameObject.BODY)
+                    {
+                        //var key = state.Key;
+                        //var clone = state.DeepCloneGrid();
+                        //Store values for updating hash
+                        PointStruct oldHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
+                        PointStruct oldNeck = new() { X = currentSnake.Body[1].X, Y = currentSnake.Body[1].Y };
+                        PointStruct oldTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
+                        //Change state of the game
+                        GameObject destinationTile = state.Grid[dx][dy];
+                        int prevHp = currentSnake.Health;
+                        int prevLength = currentSnake.Length;
+                        currentSnake.Health -= 1;
+                        if (IsHazardTile(state.Grid, dx, dy)) currentSnake.Health -= _game.Game.Ruleset.Settings.HazardDamagePerTurn;
+                        bool hasSnakeEaten = false;
+                        int currentFoodCount = foodCounts[index];
+                        if (IsFoodTile(state.Grid, dx, dy))
+                        {
+                            hasSnakeEaten = true;
+                            currentSnake.Length++;
+                            currentSnake.Health = HeuristicConstants.MAX_HEALTH;
+                            currentFoodCount++;
+                        }
+                        else if (hasSnakesEaten[0] || hasSnakesEaten[1] || hasSnakesEaten.Count > 2 && hasSnakesEaten[2] || hasSnakesEaten.Count > 3 && hasSnakesEaten[3]) //To handle case where other snake eats a food from the same tile before current snake gets to it
+                        {
+                            for (int j = 0; j < snakes.Count; j++)
+                            {
+                                Snake other = snakes[j];
+                                if (j != index && hasSnakesEaten[j] && dx == other.Head.X && dy == other.Head.Y && currentSnake.Length + 1 >= other.Length)
+                                {
+                                    hasSnakeEaten = true;
+                                    currentSnake.Length++;
+                                    currentSnake.Health = HeuristicConstants.MAX_HEALTH;
+                                    currentFoodCount++;
+                                    destinationTile = GameObject.FOOD;
+                                    break;
+                                }
+                            }
+                        }
+                        //Move the snake
+                        state.MoveSnakeForward(currentSnake, dx, dy, hasCurrentSnakeEaten);
+                        state.DrawSnakesToGrid(snakes);
+                        //Store values for updating hash
+                        PointStruct newHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
+                        PointStruct newTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
+                        state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
+                        //Execute minimax
+                        List<bool> cloneHasSnakeEaten = CloneHasSnakesEaten(hasSnakesEaten, index, hasSnakeEaten);
+                        List<int> cloneFoodCounts = CloneFoodCounts(foodCounts, index, currentFoodCount);
+                        (double score, Direction move) = ParanoidSearch(state: state,
+                                                                          snakes: snakes,
+                                                                          depth: depth - 1,
+                                                                          hasSnakesEaten: cloneHasSnakeEaten,
+                                                                          foodCounts: cloneFoodCounts,
+                                                                          isMaximizer: !isMaximizer,
+                                                                          alpha: alpha,
+                                                                          beta: beta);
+                        if (!IsTimeoutThresholdReached) //Only clear if timeout is not reached
+                        {
+                            //Move the snake back
+                            state.MoveSnakeBackward(currentSnake, oldTail, hasCurrentSnakeEaten, destinationTile);
+                            state.DrawSnakesToGrid(snakes);
+                            //Revert changes made doing previous state
+                            currentSnake.Health = prevHp;
+                            currentSnake.Length = prevLength;
+                            //Revert changes made to the key
+                            state.Key = ZobristHash.Instance.UpdateKeyBackward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
+                            //Debug.Assert(state.IsGridSame(clone));
+                            //Debug.Assert(state.Key == key);
+                        }
+
+                        if (score > bestMoveScore)
+                        {
+                            bestMoveScore = score;
+                            bestMove = GetMove(x, y);
+                            moveIndex = i;
+                        }
+                        alpha = Math.Max(alpha, score);
+
+                        if (beta <= alpha)
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                List<List<(int x, int y)>> moveLists = snakes.Count switch
+                {
+                    3 => ZobristHash.Instance.MoveListsThreePlayers,
+                    4 => ZobristHash.Instance.MoveListsFourPlayers,
+                    _ => ZobristHash.Instance.MoveListsTwoPlayers,
+                };
+                for (int i = 0; i < moveLists.Count; i++)
+                {
+                    List<(int x, int y)> currentMovesList = moveLists[i];
+                    List<ParanoidStruct> paranoidSnakes = new(currentMovesList.Count);
+                    for (int j = 0, index = 1; j < currentMovesList.Count; j++, index++)
+                    {
+                        (int x, int y) = currentMovesList[j];
+                        Snake currentSnake = snakes[index];
+                        bool hasCurrentSnakeEaten = hasSnakesEaten[index];
+                        if (IsTimeoutThresholdReached) //Halt possible new entries
+                        {
+                            _searchCutOff = true;
+                            return (0, Direction.NO_MOVE);
+                        }
+
+                        int dx = x + currentSnake.Head.X, dy = y + currentSnake.Head.Y;
+                        if (_gameMode == GameMode.WRAPPED)
+                        {
+                            Point temp = Util.WrapPointCoordinates(_game.Board.Height, _game.Board.Width, dx, dy);
+                            dx = temp.X;
+                            dy = temp.Y;
+                        }
+
+                        ParanoidStruct currentParanoid = new()
+                        {
+                            Index = index,
+                            HasCurrentSnakeEaten = hasSnakesEaten[index],
+                            CurrentFoodCount = foodCounts[index],
+                            DidMove = false
+                        };
+
+                        if (currentSnake.IsAlive && IsInBounds(dx, dy) && state.Grid[dx][dy] != GameObject.BODY)
+                        {
+                            //var key = state.Key;
+                            //var clone = state.DeepCloneGrid();
+                            //Store values for updating hash
+                            PointStruct oldHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
+                            PointStruct oldNeck = new() { X = currentSnake.Body[1].X, Y = currentSnake.Body[1].Y };
+                            PointStruct oldTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
+                            //Change state of the game
+                            GameObject destinationTile = state.Grid[dx][dy];
+                            int prevHp = currentSnake.Health;
+                            int prevLength = currentSnake.Length;
+                            currentSnake.Health -= 1;
+                            if (IsHazardTile(state.Grid, dx, dy)) currentSnake.Health -= _game.Game.Ruleset.Settings.HazardDamagePerTurn;
+                            bool hasSnakeEaten = false;
+                            int currentFoodCount = foodCounts[index];
+                            if (IsFoodTile(state.Grid, dx, dy))
+                            {
+                                hasSnakeEaten = true;
+                                currentSnake.Length++;
+                                currentSnake.Health = HeuristicConstants.MAX_HEALTH;
+                                currentFoodCount++;
+                            }
+                            else if (hasSnakesEaten[0] || hasSnakesEaten[1] || hasSnakesEaten.Count > 2 && hasSnakesEaten[2] || hasSnakesEaten.Count > 3 && hasSnakesEaten[3]) //To handle case where other snake eats a food from the same tile before current snake gets to it
+                            {
+                                for (int k = 0; k < snakes.Count; k++)
+                                {
+                                    Snake other = snakes[k];
+                                    if (k != index && hasSnakesEaten[k] && dx == other.Head.X && dy == other.Head.Y && currentSnake.Length + 1 >= other.Length)
+                                    {
+                                        hasSnakeEaten = true;
+                                        currentSnake.Length++;
+                                        currentSnake.Health = HeuristicConstants.MAX_HEALTH;
+                                        currentFoodCount++;
+                                        destinationTile = GameObject.FOOD;
+                                        break;
+                                    }
+                                }
+                            }
+                            //Move the snake
+                            state.MoveSnakeForward(currentSnake, dx, dy, hasCurrentSnakeEaten);
+                            state.DrawSnakesToGrid(snakes);
+                            //Store values for updating hash
+                            PointStruct newHead = new() { X = currentSnake.Head.X, Y = currentSnake.Head.Y };
+                            PointStruct newTail = new() { X = currentSnake.Body.Last().X, Y = currentSnake.Body.Last().Y };
+                            state.Key = ZobristHash.Instance.UpdateKeyForward(state.Key, oldNeck, oldHead, oldTail, newHead, newTail, destinationTile);
+
+                            currentParanoid.OldHead = oldHead;
+                            currentParanoid.OldNeck = oldNeck;
+                            currentParanoid.OldTail = oldTail;
+                            currentParanoid.DestinationTile = destinationTile;
+                            currentParanoid.PrevHp = prevHp;
+                            currentParanoid.PrevLength = prevLength;
+                            currentParanoid.HasSnakeEaten = hasSnakeEaten;
+                            currentParanoid.HasCurrentSnakeEaten = hasCurrentSnakeEaten;
+                            currentParanoid.CurrentFoodCount = currentFoodCount;
+                            currentParanoid.NewHead = newHead;
+                            currentParanoid.NewTail = newTail;
+                            currentParanoid.DidMove = true;
+                        }
+                        paranoidSnakes.Add(currentParanoid);
+                    }
+                    //Execute minimax
+                    List<bool> cloneHasSnakeEaten = new(currentMovesList.Count) { hasSnakesEaten[0] };
+                    List<int> cloneFoodCounts = new(currentMovesList.Count) { foodCounts[0] };
+                    for (int j = 0; j < paranoidSnakes.Count; j++)
+                    {
+                        ParanoidStruct paranoid = paranoidSnakes[j];
+                        cloneHasSnakeEaten.Add(paranoid.HasSnakeEaten);
+                        cloneFoodCounts.Add(paranoid.CurrentFoodCount);
+                    }
+                    (double score, Direction move) = ParanoidSearch(state: state,
+                                                                  snakes: snakes,
+                                                                  depth: depth - 1,
+                                                                  hasSnakesEaten: cloneHasSnakeEaten,
+                                                                  foodCounts: cloneFoodCounts,
+                                                                  isMaximizer: !isMaximizer,
+                                                                  alpha: alpha,
+                                                                  beta: beta);
+
+                    if (!IsTimeoutThresholdReached) //Only clear if timeout is not reached
+                    {
+                        for (int j = 0; j < paranoidSnakes.Count; j++)
+                        {
+                            ParanoidStruct paranoid = paranoidSnakes[j];
+                            if (paranoid.DidMove)
+                            {
+                                Snake currentSnake = snakes[paranoid.Index];
+                                //Move the snake back
+                                state.MoveSnakeBackward(currentSnake, paranoid.OldTail, paranoid.HasCurrentSnakeEaten, paranoid.DestinationTile);
+                                state.DrawSnakesToGrid(snakes);
+                                //Revert changes made doing previous state
+                                currentSnake.Health = paranoid.PrevHp;
+                                currentSnake.Length = paranoid.PrevLength;
+                                //Revert changes made to the key
+                                state.Key = ZobristHash.Instance.UpdateKeyBackward(state.Key, paranoid.OldNeck, paranoid.OldHead, paranoid.OldTail, paranoid.NewHead, paranoid.NewTail, paranoid.DestinationTile);
+                                //Debug.Assert(state.IsGridSame(clone));
+                                //Debug.Assert(state.Key == key);
+                            }
+                        }
+                    }
+
+                    if (score < bestMoveScore)
+                    {
+                        bestMoveScore = score;
+                        bestMove = move;
+                        moveIndex = move switch
+                        {
+                            Direction.UP => 3,
+                            Direction.DOWN => 1,
+                            Direction.RIGHT => 2,
+                            _ => 0, //Left
+                        };
+                    }
+                    beta = Math.Min(beta, score);
+
+                    if (beta <= alpha)
+                        break;
+                }
+            }
+
+            if (!_transpositionTable.ContainsKey(state.Key))
+            {
+                double lowerBound = double.MinValue, upperbound = double.MaxValue;
+                if (bestMoveScore <= alpha)
+                    upperbound = bestMoveScore;
+
+                if (bestMoveScore > alpha && bestMoveScore < beta)
+                {
+                    upperbound = bestMoveScore;
+                    lowerBound = bestMoveScore;
+                }
+
+                if (bestMoveScore >= beta)
+                    lowerBound = bestMoveScore;
+                _transpositionTable.Add(state.Key, new() { Move = bestMove, MoveIndex = moveIndex, Depth = depth, LowerBound = lowerBound, UpperBound = upperbound });
+            }
+
+            return (bestMoveScore, bestMove);
+        }
+
+        private const double PERCENTILE = 1.5d;
+        private const int DEPTH_PRIME = 4;
+        private const int DEPTH = 8;
+        private const double a = 1.036d;
+        private const double b = -0.009d;
+        private const double sigma = 0.542d;
+
+        //http://fierz.ch/strategy2.htm#searchenhance -- HashTables
+        //http://people.csail.mit.edu/plaat/mtdf.html#abmem
+        private readonly Dictionary<int, TranspositionValue> _transpositionTable = new();
+        private (double score, Direction move) MaxNWithAlphaBeta(State state, List<Snake> snakes, int depth, List<bool> hasSnakesEaten, List<int> foodCounts, int index = 0, double alpha = double.MinValue, double beta = double.MaxValue)
+        {
+            if (IsTimeoutThresholdReached)
+            {
+                _searchCutOff = true;
+                return (0, Direction.NO_MOVE);
+            }
+
+            (int x, int y)[] moves = new (int x, int y)[4]
+            {
+                (0, -1), //Left
+                (1, 0), //Down
+                (0, 1), //Right
+                (-1, 0) //Up
+            };
+            if (_transpositionTable.TryGetValue(state.Key, out TranspositionValue value))
+            {
+                if (snakes.Count == 2 && value.Depth >= depth)
+                {
+                    if (value.LowerBound >= beta)
+                    {
+                        if (Util.IsDebug) _goodHit++;
+                        return (value.LowerBound, value.Move);
+                    }
+                    else if (value.UpperBound <= alpha)
+                    {
+                        if (Util.IsDebug) _goodHit++;
+                        return (value.UpperBound, value.Move);
+                    }
+                }
+                if (Util.IsDebug) _hit++;
+                (int x, int y) temp = moves[0];
+                moves[0] = moves[value.MoveIndex];
+                moves[value.MoveIndex] = temp;
+            }
+            else if (Util.IsDebug)
+                _noHit++;
+
+            if (depth == 0)
+            {
+                double evaluatedState = EvaluateState(state, snakes, foodCounts);
+                return (evaluatedState, Direction.NO_MOVE);
+            }
+
             bool isMaximizer = index == 0;
             if (isMaximizer) //Only evaluate if game is over when it's my turn because it takes snake count depths for a turn
             {
                 (double score, bool isGameOver) = EvaluateIfGameIsOver(snakes, depth, state.MAX_DEPTH);
                 if (isGameOver) return (score, Direction.NO_MOVE);
             }
+
+            //------------------------------ (Multi-)ProbCut TEST ------------------------------
+            /*
+             * https://www.chessprogramming.org/ProbCut
+             * https://github.com/johanns/Zebra/blob/master/probcut.c
+             * https://silo.tips/download/first-experimental-results-of-probcut-applied-to-chess
+             */
+            //if (depth == DEPTH) //ProbCut
+            //{
+            //    double bound = Math.Round((+PERCENTILE * sigma + beta - b) / a);
+            //    if (MaxNWithAlphaBeta(state, snakes, DEPTH_PRIME, hasSnakesEaten, foodCounts, index, bound - 1, bound).score >= bound)
+            //        return (beta, Direction.NO_MOVE);
+
+            //    bound = Math.Round((-PERCENTILE * sigma + alpha - b) / a);
+            //    if (MaxNWithAlphaBeta(state, snakes, DEPTH_PRIME, hasSnakesEaten, foodCounts, index, bound, bound + 1).score <= bound)
+            //        return (alpha, Direction.NO_MOVE);
+            //}
+            //-----------------------------------------------------------------------------------
 
             Direction bestMove = Direction.NO_MOVE;
             int moveIndex = 0;
@@ -387,7 +811,7 @@ namespace Battlesnake.Algorithm
                     dy = temp.Y;
                 }
 
-                if (IsInBounds(dx, dy))
+                if (IsInBounds(dx, dy) && state.Grid[dx][dy] != GameObject.BODY)
                 {
                     //var key = state.Key;
                     //var clone = state.DeepCloneGrid();
@@ -399,7 +823,8 @@ namespace Battlesnake.Algorithm
                     GameObject destinationTile = state.Grid[dx][dy];
                     int prevHp = currentSnake.Health;
                     int prevLength = currentSnake.Length;
-                    currentSnake.Health -= IsHazardTile(state.Grid, dx, dy) ? _game.Game.Ruleset.Settings.HazardDamagePerTurn : 1;
+                    currentSnake.Health -= 1;
+                    if (IsHazardTile(state.Grid, dx, dy)) currentSnake.Health -= _game.Game.Ruleset.Settings.HazardDamagePerTurn;
                     bool hasSnakeEaten = false;
                     int currentFoodCount = foodCounts[index];
                     if (IsFoodTile(state.Grid, dx, dy))
@@ -477,20 +902,26 @@ namespace Battlesnake.Algorithm
                         }
                         beta = Math.Min(beta, score);
                     }
-                    if (beta <= alpha) break;
+
+                    if (beta <= alpha)
+                        break;
                 }
             }
 
             if (!_transpositionTable.ContainsKey(state.Key))
             {
                 double lowerBound = double.MinValue, upperbound = double.MaxValue;
-                if (bestMoveScore <= alpha) upperbound = bestMoveScore;
+                if (bestMoveScore <= alpha)
+                    upperbound = bestMoveScore;
+
                 if (bestMoveScore > alpha && bestMoveScore < beta)
                 {
                     upperbound = bestMoveScore;
                     lowerBound = bestMoveScore;
                 }
-                if (bestMoveScore >= beta) lowerBound = bestMoveScore;
+
+                if (bestMoveScore >= beta)
+                    lowerBound = bestMoveScore;
                 _transpositionTable.Add(state.Key, new() { Move = bestMove, MoveIndex = moveIndex, Depth = depth, LowerBound = lowerBound, UpperBound = upperbound });
             }
 
@@ -1096,7 +1527,7 @@ namespace Battlesnake.Algorithm
                     }
                 }
 
-                if (me.Health - 3 < ownedFoodDistance) //Minus 3 to give 3 ekstra turns to reach food
+                if (me.Health - (3 + (_hazards.Contains((me.Head.X, me.Head.Y)) ? _game.Game.Ruleset.Settings.HazardDamagePerTurn : 0)) < ownedFoodDistance) //Minus 3 to give 3 ekstra turns to reach food
                     return -10000d;
 
                 double rope = me.Health - ownedFoodDistance;
@@ -1130,7 +1561,7 @@ namespace Battlesnake.Algorithm
                     }
                 }
 
-                if (other.Health - 3 < ownedFoodDistance) //Minus 3 to give 3 ekstra turns to reach food
+                if (other.Health - (3 + (_hazards.Contains((other.Head.X, other.Head.Y)) ? _game.Game.Ruleset.Settings.HazardDamagePerTurn : 0)) < ownedFoodDistance) //Minus 3 to give 3 ekstra turns to reach food
                     return 10000d;
 
                 double rope = other.Health - ownedFoodDistance;
@@ -1156,7 +1587,7 @@ namespace Battlesnake.Algorithm
             }
             else
             {
-                double otherFloodFillScore = -1d * CalculateFloodfillScore(state.Grid, other) * HeuristicConstants.OTHER_FLOODFILL_VALUE;
+                double otherFloodFillScore = -1d * CalculateFloodfillScore(state.Grid, other);// * HeuristicConstants.OTHER_FLOODFILL_VALUE;
                 score += otherFloodFillScore;
             }
 
@@ -1340,7 +1771,7 @@ namespace Battlesnake.Algorithm
             }
 
             int mySnakeHeadOnCount = 0, otherSnakeHeadOnCount = 0;
-            if (_game.Turn != 0)
+            if (_game.Turn > 0)
             {
                 for (int i = 0; i < snakes.Count; i++)
                 {
@@ -1588,7 +2019,7 @@ namespace Battlesnake.Algorithm
 
         private bool IsHazardTile(int x, int y)
         {
-            return IsInBounds(x, y) && _grid[x][y] == GameObject.HAZARD;
+            return _hazards.Count > 0 && IsInBounds(x, y) && _grid[x][y] == GameObject.HAZARD;
         }
 
         private bool IsMoveableTile(int x, int y)
@@ -1608,7 +2039,7 @@ namespace Battlesnake.Algorithm
 
         private bool IsHazardTile(GameObject[][] grid, int x, int y)
         {
-            return IsInBounds(x, y) && grid[x][y] == GameObject.HAZARD;
+            return _hazards.Count > 0 && IsInBounds(x, y) && grid[x][y] == GameObject.HAZARD;
         }
 
         private bool IsMoveableTileWithHeadAndTail(GameObject[][] grid, int x, int y)
@@ -1690,8 +2121,8 @@ namespace Battlesnake.Algorithm
                     Point body = snake.Body[j];
                     grid[body.X][body.Y] = GameObject.BODY;
                 }
-                grid[snake.Head.X][snake.Head.Y] = GameObject.HEAD;
                 grid[snake.Body.Last().X][snake.Body.Last().Y] = GameObject.TAIL;
+                grid[snake.Head.X][snake.Head.Y] = GameObject.HEAD;
             }
             return grid;
         }

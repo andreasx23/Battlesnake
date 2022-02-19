@@ -36,10 +36,10 @@ namespace Battlesnake.Algorithm
             for (int i = 0; i < snakes.Count; i++)
             {
                 Snake snake = snakes[i];
-                Grid[snake.Head.X][snake.Head.Y] = GameObject.HEAD;
                 Grid[snake.Body[1].X][snake.Body[1].Y] = GameObject.BODY;
                 Grid[snake.Body[^2].X][snake.Body[^2].Y] = GameObject.BODY;
                 Grid[snake.Body.Last().X][snake.Body.Last().Y] = GameObject.TAIL;
+                Grid[snake.Head.X][snake.Head.Y] = GameObject.HEAD;
             }
         }
 
@@ -69,8 +69,8 @@ namespace Battlesnake.Algorithm
                 current.Body.RemoveAt(current.Body.Count - 1);
             }
             current.Body.Add(new() { X = tail.X, Y = tail.Y });
-            Grid[current.Head.X][current.Head.Y] = GameObject.HEAD;
             Grid[tail.X][tail.Y] = GameObject.TAIL;
+            Grid[current.Head.X][current.Head.Y] = GameObject.HEAD;
         }
 
         public bool IsGridSame(GameObject[][] other)

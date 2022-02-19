@@ -19,6 +19,10 @@ namespace Battlesnake.Algorithm
         private readonly int[][] _zobristNumbers;
         private readonly int _height;
 
+        public List<List<(int x, int y)>> MoveListsTwoPlayers = new(4);
+        public List<List<(int x, int y)>> MoveListsThreePlayers = new(4 * 4);
+        public List<List<(int x, int y)>> MoveListsFourPlayers = new(4 * 4 * 4);
+
         private ZobristHash(int height, int width, int amountOfPieces, int seed)
         {
             _rand = new Random(seed);
@@ -36,6 +40,25 @@ namespace Battlesnake.Algorithm
                 }
             }
             _height = height;
+
+            (int x, int y)[] moves = new (int x, int y)[4]
+            {
+                (0, -1), //Left
+                (1, 0), //Down
+                (0, 1), //Right
+                (-1, 0) //Up
+            };
+
+            foreach (var move1 in moves)
+            {
+                MoveListsTwoPlayers.Add(new(1) { move1 });
+                foreach (var move2 in moves)
+                {
+                    MoveListsThreePlayers.Add(new(2) { move1, move2 });
+                    foreach (var move3 in moves)
+                        MoveListsFourPlayers.Add(new(3) { move1, move2, move3 });
+                }
+            }
         }
 
         public static ZobristHash Instance

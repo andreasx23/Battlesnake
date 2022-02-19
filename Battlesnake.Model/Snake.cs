@@ -23,10 +23,11 @@ namespace Battlesnake.Model
         public int Length { get; set; }
         public string Shout { get; set; }
         public string Squad { get; set; }
+        public bool IsAlive => Health > 0;
 
         //Custom values
-        [IgnoreDataMember]
-        public bool IsAlive { get; set; } = true;
+        //[IgnoreDataMember]
+        //public bool IsAlive { get; set; } = true;
         [IgnoreDataMember]
         public Direction Direction { get; set; }
         [IgnoreDataMember]
